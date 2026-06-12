@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Daftar sekolah SD SPMB Kabupaten Ponorogo dengan fitur sortir, filter, dan pencarian." />
+  <title>Daftar Sekolah SD | SPMB Ponorogo</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --text: #123;
+      --muted: #667085;
+      --primary: #275df5;
+      --primary-weak: #eaf0ff;
+      --border: #e5e7eb;
+      --shadow: 0 14px 40px rgba(15, 23, 42, .08);
+      --success: #0f9d58;
+      --warning: #b54708;
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 24px 16px 48px; }
+    .hero {
+      background: linear-gradient(135deg, #0f2d7d 0%, #275df5 50%, #5b8cff 100%);
+      color: white;
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -90px -110px auto;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.12);
+      filter: blur(2px);
+    }
+    .hero-top {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1.5fr auto;
+      align-items: start;
+      position: relative;
+      z-index: 1;
+    }
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      width: fit-content;
+      font-size: 14px;
+    }
+    h1 { margin: 12px 0 8px; font-size: clamp(28px, 4vw, 44px); line-height: 1.08; }
+    .lead { margin: 0; max-width: 72ch; color: rgba(255,255,255,.9); font-size: 16px; line-height: 1.6; }
+    .hero-card {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(8px);
+      border-radius: 22px;
+      padding: 16px 18px;
+      min-width: 240px;
+    }
+    .hero-card .big {
+      font-size: 34px; font-weight: 800; line-height: 1;
+    }
+    .hero-card .small {
+      margin-top: 6px;
+      font-size: 13px;
+      color: rgba(255,255,255,.84);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+      position: relative;
+      z-index: 1;
+    }
+    .stat {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+    .stat .label { font-size: 13px; opacity: .86; margin-bottom: 8px; }
+    .stat .value { font-size: 26px; font-weight: 800; }
+    .stat .hint { font-size: 12px; opacity: .82; margin-top: 4px; }
+    .panel {
+      margin-top: 18px;
+      background: var(--surface);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(148, 163, 184, .18);
+      overflow: hidden;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 1.7fr .85fr .85fr .95fr .95fr .95fr auto;
+      gap: 12px;
+      padding: 18px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .field label {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+    .field input:focus, .field select:focus {
+      border-color: rgba(39, 93, 245, .55);
+      box-shadow: 0 0 0 4px rgba(39, 93, 245, .12);
+    }
+    .field-inline {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .actions {
+      display: flex;
+      align-items: end;
+      gap: 10px;
+    }
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 10px 22px rgba(39, 93, 245, .25);
+    }
+    .btn-ghost {
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 18px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .chip {
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #344054;
+    }
+    .chip.active {
+      background: var(--primary-weak);
+      border-color: rgba(39, 93, 245, .18);
+      color: #1d4ed8;
+    }
+    .filter-note {
+      padding: 0 18px 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+      flex-wrap: wrap;
+    }
+    .toolbar .summary {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .toolbar .summary strong { font-size: 18px; }
+    .toolbar .summary span { color: var(--muted); font-size: 13px; }
+    .table-wrap {
+      overflow: auto;
+      max-height: 76vh;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+      background: white;
+    }
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f8fafc;
+      color: #475467;
+      text-align: left;
+      font-size: 13px;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #eef2f7;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    tbody tr:hover { background: #f8fbff; }
+    .no { width: 70px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .npsn { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .pagu {
+      text-align: right;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: #1d4ed8;
+      font-weight: 700;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .empty {
+      padding: 36px 18px 50px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .empty strong {
+      display: block;
+      font-size: 18px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .footer-note {
+      padding: 14px 18px 18px;
+      color: var(--muted);
+      font-size: 13px;
+      background: #fff;
+      border-top: 1px solid var(--border);
+    }
+    @media (max-width: 1120px) {
+      .hero-top, .controls { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .actions { align-items: stretch; }
+    }
+    @media (max-width: 720px) {
+      .wrap { padding: 14px 10px 28px; }
+      .hero { padding: 20px; border-radius: 22px; }
+      .stats { grid-template-columns: 1fr; }
+      .toolbar { align-items: flex-start; }
+      .table-wrap { max-height: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="kicker">📚 SPMB SD Kabupaten Ponorogo</div>
+          <h1>Daftar Sekolah SD</h1>
+        </div>
+        <div class="hero-card">
+          <div class="big" id="cardVisible">0</div>
+          <div class="small">sekolah sedang tampil setelah filter diterapkan</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="label">Total sekolah</div>
+          <div class="value">560</div>
+          <div class="hint">seluruh data yang termuat</div>
+        </div>
+        <div class="stat">
+          <div class="label">Rata-rata pagu</div>
+          <div class="value">28.8</div>
+          <div class="hint">berdasarkan data asli</div>
+        </div>
+        <div class="stat">
+          <div class="label">Pagu tertinggi</div>
+          <div class="value">84</div>
+          <div class="hint">nilai terbesar pada data</div>
+        </div>
+        <div class="stat">
+          <div class="label">Pagu unik</div>
+          <div class="value">4</div>
+          <div class="hint">kategori pagu tersedia</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="controls">
+        <div class="field">
+          <label for="searchInput">Pencarian</label>
+          <input id="searchInput" type="search" placeholder="Cari nama sekolah, NPSN, alamat, atau pagu..." />
+        </div>
+        <div class="field">
+          <label for="sortSelect">Urutkan</label>
+          <select id="sortSelect">
+            <option value="pagu_desc">Pagu terbesar → terkecil</option>
+            <option value="pagu_asc">Pagu terkecil → terbesar</option>
+            <option value="name_asc">Nama A → Z</option>
+            <option value="name_desc">Nama Z → A</option>
+            <option value="original">Urutan asli</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Pagu minimum</label>
+          <input id="minPagu" type="number" min="0" step="1" placeholder="Contoh: 28" />
+        </div>
+        <div class="field">
+          <label>Pagu maksimum</label>
+          <input id="maxPagu" type="number" min="0" step="1" placeholder="Contoh: 56" />
+        </div>
+        <div class="field">
+          <label for="districtFilter">Kecamatan</label>
+          <select id="districtFilter">
+            <option value="">Semua kecamatan</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="villageFilter">Desa / Kelurahan</label>
+          <select id="villageFilter">
+            <option value="">Semua desa / kelurahan</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="resetBtn" type="button">Reset</button>
+        </div>
+      </div>
+      <div class="filter-note">Format alamat dibaca sebagai <strong>Kecamatan</strong> pada bagian kiri dan <strong>Desa/Kelurahan</strong> pada bagian setelah tanda koma.</div>
+
+      <div class="chips" id="chips"></div>
+
+      <div class="toolbar">
+        <div class="summary">
+          <strong id="resultTitle">Daftar sekolah</strong>
+          <span id="resultMeta">Memuat data...</span>
+        </div>
+        <div class="badge" id="activeFilterBadge">Semua pagu</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="no">No</th>
+              <th>Nama</th>
+              <th>NPSN</th>
+              <th>Tingkat</th>
+              <th>Alamat</th>
+              <th class="pagu">Pagu</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="empty" id="emptyState" hidden>
+          <strong>Tidak ada data yang cocok</strong>
+          <div>Coba ganti kata pencarian atau rentang pagu.</div>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        Data disortir dan difilter sepenuhnya di browser, sehingga cocok untuk GitHub Pages tanpa backend.
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const schools = [{"originalNo": 1, "name": "SD NEGERI 1 BABADAN", "npsn": "20510367", "level": "SD", "address": "BABADAN, BABADAN", "pagu": 28}, {"originalNo": 2, "name": "SD NEGERI 1 BADEGAN", "npsn": "20510366", "level": "SD", "address": "BADEGAN, BADEGAN", "pagu": 28}, {"originalNo": 3, "name": "SD NEGERI 1 BAJANG", "npsn": "20510365", "level": "SD", "address": "MLARAK, BAJANG", "pagu": 28}, {"originalNo": 4, "name": "SD NEGERI 1 BALONG", "npsn": "20510364", "level": "SD", "address": "BALONG, BALONG", "pagu": 56}, {"originalNo": 5, "name": "SD NEGERI 1 BANCANGAN", "npsn": "20510350", "level": "SD", "address": "SAMBIT, BANCANGAN", "pagu": 28}, {"originalNo": 6, "name": "SD NEGERI 1 BANCAR", "npsn": "20510349", "level": "SD", "address": "BUNGKAL, BANCAR", "pagu": 28}, {"originalNo": 7, "name": "SD NEGERI 1 BANGSALAN", "npsn": "20510348", "level": "SD", "address": "SAMBIT, BANGSALAN", "pagu": 28}, {"originalNo": 8, "name": "SD NEGERI 1 BANGUNREJO", "npsn": "20510332", "level": "SD", "address": "SUKOREJO, BANGUNREJO", "pagu": 28}, {"originalNo": 9, "name": "SD NEGERI 1 BANGUNSARI", "npsn": "20510331", "level": "SD", "address": "PONOROGO, BANGUNSARI", "pagu": 28}, {"originalNo": 10, "name": "SD NEGERI 1 BANJARJO", "npsn": "20510330", "level": "SD", "address": "PUDAK, BANJAREJO", "pagu": 28}, {"originalNo": 11, "name": "SD NEGERI 1 BANYUDONO", "npsn": "20510329", "level": "SD", "address": "PONOROGO, BANYUDONO", "pagu": 28}, {"originalNo": 12, "name": "SD NEGERI 1 BAOSAN KIDUL", "npsn": "20510328", "level": "SD", "address": "NGRAYUN, BAOSAN KIDUL", "pagu": 28}, {"originalNo": 13, "name": "SD NEGERI 1 BAOSAN LOR", "npsn": "20510327", "level": "SD", "address": "NGRAYUN, BAOSAN LOR", "pagu": 28}, {"originalNo": 14, "name": "SD NEGERI 1 BARENG", "npsn": "20510326", "level": "SD", "address": "PUDAK, BARENG", "pagu": 28}, {"originalNo": 15, "name": "SD NEGERI 1 BEDINGIN", "npsn": "20510324", "level": "SD", "address": "SAMBIT, BEDINGIN", "pagu": 28}, {"originalNo": 16, "name": "SD NEGERI 1 BEDOHO", "npsn": "20510323", "level": "SD", "address": "SOOKO, BEDOHO", "pagu": 28}, {"originalNo": 17, "name": "SD NEGERI 1 BEDRUG", "npsn": "20510322", "level": "SD", "address": "PULUNG, BEDRUG", "pagu": 28}, {"originalNo": 18, "name": "SD NEGERI 1 BEDURI", "npsn": "20510334", "level": "SD", "address": "PONOROGO, BEDURI", "pagu": 28}, {"originalNo": 19, "name": "SD NEGERI 1 BEKIRING", "npsn": "20510335", "level": "SD", "address": "PULUNG, BEKIRING", "pagu": 28}, {"originalNo": 20, "name": "SD NEGERI 1 BINADE", "npsn": "20510347", "level": "SD", "address": "NGRAYUN, BINADE", "pagu": 28}, {"originalNo": 21, "name": "SD NEGERI 1 BLEMBEM", "npsn": "20510346", "level": "SD", "address": "JAMBON, BLEMBEM", "pagu": 56}, {"originalNo": 22, "name": "SD NEGERI 1 BONDRANG", "npsn": "20510344", "level": "SD", "address": "SAWOO, BONDRANG", "pagu": 28}, {"originalNo": 23, "name": "SD NEGERI 1 BROTONEGARAN", "npsn": "20510342", "level": "SD", "address": "PONOROGO, BROTONEGARAN", "pagu": 56}, {"originalNo": 24, "name": "SD NEGERI 1 BULULOR", "npsn": "20510341", "level": "SD", "address": "JAMBON, JAMBON", "pagu": 28}, {"originalNo": 25, "name": "SD NEGERI 1 CALUK", "npsn": "20510339", "level": "SD", "address": "SLAHUNG, CALUK", "pagu": 28}, {"originalNo": 26, "name": "SD NEGERI 1 CANDI", "npsn": "20510338", "level": "SD", "address": "MLARAK, CANDI", "pagu": 28}, {"originalNo": 27, "name": "SD NEGERI 1 CARANGREJO", "npsn": "20510337", "level": "SD", "address": "SAMPUNG, CARANGREJO", "pagu": 28}, {"originalNo": 28, "name": "SD NEGERI 1 CEPOKO", "npsn": "20510321", "level": "SD", "address": "NGRAYUN, CEPOKO", "pagu": 28}, {"originalNo": 29, "name": "SD NEGERI 1 COPER", "npsn": "20510632", "level": "SD", "address": "JETIS, COPER", "pagu": 28}, {"originalNo": 30, "name": "SD NEGERI 1 DAYAKAN", "npsn": "20510631", "level": "SD", "address": "BADEGAN, DAYAKAN", "pagu": 28}, {"originalNo": 31, "name": "SD NEGERI 1 DEMANGAN", "npsn": "20510265", "level": "SD", "address": "SIMAN, DEMANGAN", "pagu": 28}, {"originalNo": 32, "name": "SD NEGERI 1 DURI", "npsn": "20510630", "level": "SD", "address": "SLAHUNG, DURI", "pagu": 28}, {"originalNo": 33, "name": "SD NEGERI 1 GABEL", "npsn": "20510629", "level": "SD", "address": "KAUMAN, GABEL", "pagu": 28}, {"originalNo": 34, "name": "SD NEGERI 1 GAJAH", "npsn": "20510628", "level": "SD", "address": "SAMBIT, GAJAH", "pagu": 28}, {"originalNo": 35, "name": "SD NEGERI 1 GANDUKEPUH", "npsn": "20510626", "level": "SD", "address": "SUKOREJO, GANDUKEPUH", "pagu": 28}, {"originalNo": 36, "name": "SD NEGERI 1 GEGERAN", "npsn": "20510625", "level": "SD", "address": "SUKOREJO, GEGERAN", "pagu": 28}, {"originalNo": 37, "name": "SD NEGERI 1 GELANGKULON", "npsn": "20510624", "level": "SD", "address": "SAMPUNG, GELANGKULON", "pagu": 28}, {"originalNo": 38, "name": "SD NEGERI 1 GELANGLOR", "npsn": "20510623", "level": "SD", "address": "SUKOREJO, GELANG LOR", "pagu": 28}, {"originalNo": 39, "name": "SD NEGERI 1 GROGOL", "npsn": "20510633", "level": "SD", "address": "SAWOO, GROGOL", "pagu": 28}, {"originalNo": 40, "name": "SD NEGERI 1 JAPAN", "npsn": "20510645", "level": "SD", "address": "BABADAN, JAPAN", "pagu": 28}, {"originalNo": 41, "name": "SD NEGERI 1 JARAK", "npsn": "20510644", "level": "SD", "address": "SIMAN, JARAK", "pagu": 28}, {"originalNo": 42, "name": "SD NEGERI 1 JENANGAN", "npsn": "20545344", "level": "SD", "address": "SAMPUNG, JENANGAN", "pagu": 28}, {"originalNo": 43, "name": "SD NEGERI 1 JENANGAN", "npsn": "20510642", "level": "SD", "address": "JENANGAN, JENANGAN", "pagu": 28}, {"originalNo": 44, "name": "SD NEGERI 1 JIMBE", "npsn": "20510264", "level": "SD", "address": "JENANGAN, JIMBE", "pagu": 28}, {"originalNo": 45, "name": "SD NEGERI 1 JINGGLONG", "npsn": "20510641", "level": "SD", "address": "PONOROGO, JINGGLONG", "pagu": 28}, {"originalNo": 46, "name": "SD NEGERI 1 JOSARI", "npsn": "20510640", "level": "SD", "address": "JETIS, JOSARI", "pagu": 28}, {"originalNo": 47, "name": "SD NEGERI 1 JURUG", "npsn": "20510639", "level": "SD", "address": "SOOKO, JURUG", "pagu": 28}, {"originalNo": 48, "name": "SD NEGERI 1 KADIPATEN", "npsn": "20510638", "level": "SD", "address": "BABADAN, KADIPATEN", "pagu": 28}, {"originalNo": 49, "name": "SD NEGERI 1 KALISAT", "npsn": "20510637", "level": "SD", "address": "BUNGKAL, KALISAT", "pagu": 28}, {"originalNo": 50, "name": "SD NEGERI 1 KAPONAN", "npsn": "20510636", "level": "SD", "address": "MLARAK, KAPONAN", "pagu": 28}, {"originalNo": 51, "name": "SD NEGERI 1 KARANGAN", "npsn": "20510621", "level": "SD", "address": "BALONG, KARANGAN", "pagu": 56}, {"originalNo": 52, "name": "SD NEGERI 1 KARANGAN", "npsn": "20510635", "level": "SD", "address": "BADEGAN, KARANGAN", "pagu": 28}, {"originalNo": 53, "name": "SD NEGERI 1 KARANGJOHO", "npsn": "20510619", "level": "SD", "address": "BADEGAN, KARANGJOHO", "pagu": 28}, {"originalNo": 54, "name": "SD NEGERI 1 KARANGLO KIDUL", "npsn": "20510605", "level": "SD", "address": "JAMBON, KARANGLO KIDUL", "pagu": 28}, {"originalNo": 55, "name": "SD NEGERI 1 KARANGLOLOR", "npsn": "20510604", "level": "SD", "address": "SUKOREJO, KARANGLO LOR", "pagu": 56}, {"originalNo": 56, "name": "SD NEGERI 1 KARANGPATIHAN", "npsn": "20510603", "level": "SD", "address": "PULUNG, KARANGPATIHAN", "pagu": 28}, {"originalNo": 57, "name": "SD NEGERI 1 KARANGPATIHAN", "npsn": "20551642", "level": "SD", "address": "BALONG, KARANGPATIHAN", "pagu": 28}, {"originalNo": 58, "name": "SD NEGERI 1 KARANGWALUH", "npsn": "20510601", "level": "SD", "address": "SAMPUNG, KARANGWALUH", "pagu": 28}, {"originalNo": 59, "name": "SD NEGERI 1 KAUMAN", "npsn": "20510600", "level": "SD", "address": "KAUMAN, KAUMAN", "pagu": 28}, {"originalNo": 60, "name": "SD NEGERI 1 KEDUNGBANTENG", "npsn": "20510263", "level": "SD", "address": "SUKOREJO, KEDUNGBANTENG", "pagu": 28}, {"originalNo": 61, "name": "SD NEGERI 1 KEMIRI", "npsn": "20510598", "level": "SD", "address": "JENANGAN, KEMIRI", "pagu": 28}, {"originalNo": 62, "name": "SD NEGERI 1 KENITEN", "npsn": "20510597", "level": "SD", "address": "PONOROGO, KENITEN", "pagu": 28}, {"originalNo": 63, "name": "SD NEGERI 1 KESUGIHAN", "npsn": "20510595", "level": "SD", "address": "PULUNG, KESUGIHAN", "pagu": 28}, {"originalNo": 64, "name": "SD NEGERI 1 KLEPU", "npsn": "20510606", "level": "SD", "address": "SOOKO, KLEPU", "pagu": 28}, {"originalNo": 65, "name": "SD NEGERI 1 KORI", "npsn": "20510607", "level": "SD", "address": "SAWOO, KORI", "pagu": 28}, {"originalNo": 66, "name": "SD NEGERI 1 KREBET", "npsn": "20510618", "level": "SD", "address": "JAMBON, KREBET", "pagu": 28}, {"originalNo": 67, "name": "SD NEGERI 1 KUNTI", "npsn": "20510617", "level": "SD", "address": "SAMPUNG, KUNTI", "pagu": 28}, {"originalNo": 68, "name": "SD NEGERI 1 KUPUK", "npsn": "20510616", "level": "SD", "address": "BUNGKAL, KUPUK", "pagu": 28}, {"originalNo": 69, "name": "SD NEGERI 1 LEMBAH", "npsn": "20510615", "level": "SD", "address": "BABADAN, LEMBAH", "pagu": 28}, {"originalNo": 70, "name": "SD NEGERI 1 MADUSARI", "npsn": "20510614", "level": "SD", "address": "SIMAN, MADUSARI", "pagu": 28}, {"originalNo": 71, "name": "SD NEGERI 1 MAGUAN", "npsn": "20510613", "level": "SD", "address": "SAMBIT, MAGUWAN", "pagu": 28}, {"originalNo": 72, "name": "SD NEGERI 1 MANGKUJAYAN", "npsn": "20510612", "level": "SD", "address": "PONOROGO, MANGKUJAYAN", "pagu": 84}, {"originalNo": 73, "name": "SD NEGERI 1 MRAYAN", "npsn": "20510611", "level": "SD", "address": "NGRAYUN, MRAYAN", "pagu": 28}, {"originalNo": 74, "name": "SD NEGERI 1 MRICAN", "npsn": "20510610", "level": "SD", "address": "JENANGAN, MRICAN", "pagu": 28}, {"originalNo": 75, "name": "SD NEGERI 1 MUNENG", "npsn": "20510609", "level": "SD", "address": "BALONG, MUNENG", "pagu": 28}, {"originalNo": 76, "name": "SD NEGERI 1 MUNGGU", "npsn": "20510608", "level": "SD", "address": "BUNGKAL, MUNGGU", "pagu": 28}, {"originalNo": 77, "name": "SD NEGERI 1 MUNGGUNG", "npsn": "20510594", "level": "SD", "address": "PULUNG, MUNGGUNG", "pagu": 28}, {"originalNo": 78, "name": "SD NEGERI 1 NAMBANGREJO", "npsn": "20510701", "level": "SD", "address": "SUKOREJO, NAMBANGREJO", "pagu": 28}, {"originalNo": 79, "name": "SD NEGERI 1 NGADIROJO", "npsn": "20510687", "level": "SD", "address": "SOOKO, NGADIROJO", "pagu": 28}, {"originalNo": 80, "name": "SD NEGERI 1 NGADISANAN", "npsn": "20510686", "level": "SD", "address": "SAMBIT, NGADISANAN", "pagu": 28}, {"originalNo": 81, "name": "SD NEGERI 1 NGASINAN", "npsn": "20510684", "level": "SD", "address": "JETIS, NGASINAN", "pagu": 28}, {"originalNo": 82, "name": "SD NEGERI 1 NGEBEL", "npsn": "20510683", "level": "SD", "address": "NGEBEL, NGEBEL", "pagu": 28}, {"originalNo": 83, "name": "SD Negeri 1 Ngendut", "npsn": "20510682", "level": "SD", "address": "BALONG, NGENDUT", "pagu": 28}, {"originalNo": 84, "name": "SD NEGERI 1 NGILO-ILO", "npsn": "20510681", "level": "SD", "address": "SLAHUNG, NGILO-ILO", "pagu": 28}, {"originalNo": 85, "name": "SD NEGERI 1 NGINDENG", "npsn": "20510680", "level": "SD", "address": "SAWOO, NGINDENG", "pagu": 28}, {"originalNo": 86, "name": "SD NEGERI 1 NGLAYANG", "npsn": "20510679", "level": "SD", "address": "JENANGAN, NGLAYANG", "pagu": 28}, {"originalNo": 87, "name": "SD NEGERI 1 NGLUMPANG", "npsn": "20510677", "level": "SD", "address": "MLARAK, NGLUMPANG", "pagu": 28}, {"originalNo": 88, "name": "SD NEGERI 1 NGLURUP", "npsn": "20510699", "level": "SD", "address": "SAMPUNG, NGLURUP", "pagu": 28}, {"originalNo": 89, "name": "SD NEGERI 1 NGRANDU", "npsn": "20510676", "level": "SD", "address": "KAUMAN, NGRANDU", "pagu": 28}, {"originalNo": 90, "name": "SD NEGERI 1 NGRAYUN", "npsn": "20510688", "level": "SD", "address": "NGRAYUN, NGRAYUN", "pagu": 28}, {"originalNo": 91, "name": "SD NEGERI 1 NGROGUNG", "npsn": "20510689", "level": "SD", "address": "NGEBEL, NGROGUNG", "pagu": 28}, {"originalNo": 92, "name": "SD NEGERI 1 NGRUPIT", "npsn": "20510700", "level": "SD", "address": "JENANGAN, NGRUPIT", "pagu": 28}, {"originalNo": 93, "name": "SD NEGERI 1 NGUMPUL", "npsn": "20510698", "level": "SD", "address": "BALONG, NGUMPUL", "pagu": 28}, {"originalNo": 94, "name": "SD NEGERI 1 NOLOGATEN", "npsn": "20510697", "level": "SD", "address": "PONOROGO, NOLOGATEN", "pagu": 28}, {"originalNo": 95, "name": "SD NEGERI 1 PAGERUKIR", "npsn": "20510696", "level": "SD", "address": "SAMPUNG, PAGERUKIR", "pagu": 28}, {"originalNo": 96, "name": "SD NEGERI 1 PAJU", "npsn": "20510695", "level": "SD", "address": "PONOROGO, PAJU", "pagu": 28}, {"originalNo": 97, "name": "SD NEGERI 1 PAKUNDEN", "npsn": "20510694", "level": "SD", "address": "PONOROGO, PAKUNDEN", "pagu": 28}, {"originalNo": 98, "name": "SD NEGERI 1 PANDAK", "npsn": "20510693", "level": "SD", "address": "BALONG, PANDAK", "pagu": 28}, {"originalNo": 99, "name": "SD NEGERI 1 PANGKAL", "npsn": "20510692", "level": "SD", "address": "SAWOO, PANGKAL", "pagu": 28}, {"originalNo": 100, "name": "SD NEGERI 1 PELEM", "npsn": "20510690", "level": "SD", "address": "BUNGKAL, PELEM", "pagu": 28}, {"originalNo": 101, "name": "SD NEGERI 1 PENGKOL", "npsn": "20510675", "level": "SD", "address": "KAUMAN, PENGKOL", "pagu": 28}, {"originalNo": 102, "name": "SD NEGERI 1 PIJERAN", "npsn": "20510674", "level": "SD", "address": "SIMAN, PIJERAN", "pagu": 28}, {"originalNo": 103, "name": "SD NEGERI 1 PINGGIRSARI", "npsn": "20510673", "level": "SD", "address": "PONOROGO, PINGGIRSARI", "pagu": 28}, {"originalNo": 104, "name": "SD NEGERI 1 PLALANGAN", "npsn": "20510658", "level": "SD", "address": "JENANGAN, PLALANGAN", "pagu": 28}, {"originalNo": 105, "name": "SD NEGERI 1 PLOSOJENAR", "npsn": "20510657", "level": "SD", "address": "KAUMAN, PLOSOJENAR", "pagu": 28}, {"originalNo": 106, "name": "SD NEGERI 1 PLUNTURAN", "npsn": "20510656", "level": "SD", "address": "PULUNG, PLUNTURAN", "pagu": 28}, {"originalNo": 107, "name": "SD NEGERI 1 POHIJO", "npsn": "20510655", "level": "SD", "address": "SAMPUNG, POHIJO", "pagu": 28}, {"originalNo": 108, "name": "SD NEGERI 1 POLOREJO", "npsn": "20510653", "level": "SD", "address": "BABADAN, POLOREJO", "pagu": 28}, {"originalNo": 109, "name": "SD NEGERI 1 POMAHAN", "npsn": "20510652", "level": "SD", "address": "PULUNG, POMAHAN", "pagu": 28}, {"originalNo": 110, "name": "SD NEGERI 1 PONDOK", "npsn": "20510651", "level": "SD", "address": "BABADAN, PONDOK", "pagu": 28}, {"originalNo": 111, "name": "SD NEGERI 1 PRAJEGAN", "npsn": "20510650", "level": "SD", "address": "SUKOREJO, PRAJEGAN", "pagu": 28}, {"originalNo": 112, "name": "SD NEGERI 1 PRAYUNGAN", "npsn": "20510649", "level": "SD", "address": "SAWOO, PRAYUNGAN", "pagu": 28}, {"originalNo": 113, "name": "SD NEGERI 1 PULUNG", "npsn": "20510648", "level": "SD", "address": "PULUNG, PULUNG", "pagu": 28}, {"originalNo": 114, "name": "SD NEGERI 1 PUPUS", "npsn": "20510659", "level": "SD", "address": "NGEBEL, PUPUS", "pagu": 28}, {"originalNo": 115, "name": "SD NEGERI 1 PURBOSUMAN", "npsn": "20510660", "level": "SD", "address": "PONOROGO, PURBOSUMAN", "pagu": 28}, {"originalNo": 116, "name": "SD NEGERI 1 SAMBILAWANG", "npsn": "20510670", "level": "SD", "address": "BUNGKAL, SAMBILAWANG", "pagu": 28}, {"originalNo": 117, "name": "SD NEGERI 1 SAMBIT", "npsn": "20510669", "level": "SD", "address": "SAMBIT, SAMBIT", "pagu": 28}, {"originalNo": 118, "name": "SD NEGERI 1 SAMPUNG", "npsn": "20510668", "level": "SD", "address": "SAMPUNG, SAMPUNG", "pagu": 28}, {"originalNo": 119, "name": "SD NEGERI 1 SAWOO", "npsn": "20510667", "level": "SD", "address": "SAWOO, SAWOO", "pagu": 28}, {"originalNo": 120, "name": "SD NEGERI 1 SEDARAT", "npsn": "20510665", "level": "SD", "address": "BALONG, SEDARAT", "pagu": 28}, {"originalNo": 121, "name": "SD NEGERI 1 SEKARAN", "npsn": "20510664", "level": "SD", "address": "SIMAN, SEKARAN", "pagu": 28}, {"originalNo": 122, "name": "SD NEGERI 1 SELUR", "npsn": "20510663", "level": "SD", "address": "NGRAYUN, SELUR", "pagu": 28}, {"originalNo": 123, "name": "SD NEGERI 1 SEMANDING", "npsn": "20510662", "level": "SD", "address": "KAUMAN, SEMANDING", "pagu": 28}, {"originalNo": 124, "name": "SD NEGERI 1 SEMANDING", "npsn": "20510661", "level": "SD", "address": "JENANGAN, SEMANDING", "pagu": 28}, {"originalNo": 125, "name": "SD NEGERI 1 SENDANG", "npsn": "20510647", "level": "SD", "address": "NGRAYUN, SENDANG", "pagu": 28}, {"originalNo": 126, "name": "SD NEGERI 1 SENDANG", "npsn": "20510262", "level": "SD", "address": "JAMBON, SENDANG", "pagu": 28}, {"originalNo": 127, "name": "SD NEGERI 1 SENEPO", "npsn": "20510593", "level": "SD", "address": "SLAHUNG, SENEPO", "pagu": 28}, {"originalNo": 128, "name": "SD NEGERI 1 SERANGAN", "npsn": "20510537", "level": "SD", "address": "SUKOREJO, SERANGAN", "pagu": 28}, {"originalNo": 129, "name": "SD NEGERI 1 SIDOHARJO", "npsn": "20510523", "level": "SD", "address": "PULUNG, SIDOHARJO", "pagu": 28}, {"originalNo": 130, "name": "SD NEGERI 1 SIDOREJO", "npsn": "20510261", "level": "SD", "address": "SUKOREJO, SIDOREJO", "pagu": 28}, {"originalNo": 131, "name": "SD NEGERI 1 SIMAN", "npsn": "20510522", "level": "SD", "address": "SIMAN, SIMAN", "pagu": 28}, {"originalNo": 132, "name": "SD NEGERI 1 SINGGAHAN", "npsn": "20510520", "level": "SD", "address": "PULUNG, SINGGAHAN", "pagu": 28}, {"originalNo": 133, "name": "SD NEGERI 1 SINGOSAREN", "npsn": "20510519", "level": "SD", "address": "JENANGAN, SINGOSAREN", "pagu": 28}, {"originalNo": 134, "name": "SD NEGERI 1 SIWALAN", "npsn": "20510518", "level": "SD", "address": "MLARAK, SIWALAN", "pagu": 28}, {"originalNo": 135, "name": "SD NEGERI 1 SLAHUNG", "npsn": "20510517", "level": "SD", "address": "SLAHUNG, SLAHUNG", "pagu": 28}, {"originalNo": 136, "name": "SD NEGERI 1 SOMOROTO", "npsn": "20510524", "level": "SD", "address": "KAUMAN, KAUMAN", "pagu": 84}, {"originalNo": 137, "name": "SD NEGERI 1 SOOKO", "npsn": "20510516", "level": "SD", "address": "SOOKO, SOOKO", "pagu": 28}, {"originalNo": 138, "name": "SD NEGERI 1 SRITI", "npsn": "20510515", "level": "SD", "address": "SAWOO, TEMPURAN", "pagu": 28}, {"originalNo": 139, "name": "SD NEGERI 1 SUKOREJO", "npsn": "20510514", "level": "SD", "address": "SUKOREJO, SUKOREJO", "pagu": 28}, {"originalNo": 140, "name": "SD NEGERI 1 SUKOSARI", "npsn": "20510513", "level": "SD", "address": "BABADAN, SUKOSARI", "pagu": 28}, {"originalNo": 141, "name": "SD NEGERI 1 SUREN", "npsn": "20510525", "level": "SD", "address": "MLARAK, SUREN", "pagu": 28}, {"originalNo": 142, "name": "SD NEGERI 1 SURODIKRAMAN", "npsn": "20549689", "level": "SD", "address": "PONOROGO, SURODIKRAMAN", "pagu": 28}, {"originalNo": 143, "name": "SD NEGERI 1 SURU", "npsn": "20510536", "level": "SD", "address": "SOOKO, SURU", "pagu": 28}, {"originalNo": 144, "name": "SD NEGERI 1 TALUN", "npsn": "20510534", "level": "SD", "address": "NGEBEL, TALUN", "pagu": 28}, {"originalNo": 145, "name": "SD NEGERI 1 TANJUNGGUNUNG", "npsn": "20510533", "level": "SD", "address": "BADEGAN, TANJUNGGUNUNG", "pagu": 28}, {"originalNo": 146, "name": "SD NEGERI 1 TANJUNGREJO", "npsn": "20510532", "level": "SD", "address": "BADEGAN, TANJUNGREJO", "pagu": 28}, {"originalNo": 147, "name": "SD NEGERI 1 TANJUNGSARI", "npsn": "20510531", "level": "SD", "address": "JENANGAN, TANJUNGSARI", "pagu": 28}, {"originalNo": 148, "name": "SD NEGERI 1 TEGALOMBO", "npsn": "20510529", "level": "SD", "address": "KAUMAN, TEGALOMBO", "pagu": 28}, {"originalNo": 149, "name": "SD NEGERI 1 TEGALREJO", "npsn": "20510528", "level": "SD", "address": "PULUNG, TEGALREJO", "pagu": 28}, {"originalNo": 150, "name": "SD NEGERI 1 TEMON", "npsn": "20510527", "level": "SD", "address": "NGRAYUN, NGRAYUN", "pagu": 28}, {"originalNo": 151, "name": "SD NEGERI 1 TEMON", "npsn": "20552079", "level": "SD", "address": "SAWOO, TEMON", "pagu": 28}, {"originalNo": 152, "name": "SD NEGERI 1 TEMPURAN", "npsn": "20510512", "level": "SD", "address": "SAWOO, TEMON", "pagu": 28}, {"originalNo": 153, "name": "SD NEGERI 1 TOTOKAN", "npsn": "20510510", "level": "SD", "address": "MLARAK, TOTOKAN", "pagu": 28}, {"originalNo": 154, "name": "SD NEGERI 1 TRANJANG", "npsn": "20510496", "level": "SD", "address": "SIMAN, TRANJANG", "pagu": 28}, {"originalNo": 155, "name": "SD NEGERI 1 TRISONO", "npsn": "20510495", "level": "SD", "address": "BABADAN, TRISONO", "pagu": 28}, {"originalNo": 156, "name": "SD NEGERI 1 TUGU", "npsn": "20510494", "level": "SD", "address": "MLARAK, TUGU", "pagu": 28}, {"originalNo": 157, "name": "SD NEGERI 1 TUGUREJO", "npsn": "20510493", "level": "SD", "address": "SLAHUNG, TUGUREJO", "pagu": 28}, {"originalNo": 158, "name": "SD NEGERI 1 TULUNG", "npsn": "20510492", "level": "SD", "address": "SAMPUNG, TULUNG", "pagu": 28}, {"originalNo": 159, "name": "SD NEGERI 1 TUMPAKPELEM", "npsn": "20510491", "level": "SD", "address": "SAWOO, TUMPAK PELEM", "pagu": 28}, {"originalNo": 160, "name": "SD NEGERI 1 TUMPUK", "npsn": "20510490", "level": "SD", "address": "SAWOO, TUMPUK", "pagu": 28}, {"originalNo": 161, "name": "SD NEGERI 1 WAGIR LOR", "npsn": "20539049", "level": "SD", "address": "NGEBEL, WAGIR LOR", "pagu": 28}, {"originalNo": 162, "name": "SD NEGERI 1 WAGIRKIDUL", "npsn": "20510488", "level": "SD", "address": "PULUNG, WAGIR KIDUL", "pagu": 28}, {"originalNo": 163, "name": "SD NEGERI 1 WATES", "npsn": "20551856", "level": "SD", "address": "JENANGAN, WATES", "pagu": 28}, {"originalNo": 164, "name": "SD NEGERI 1 WATES KECAMATAN SLAHUNG", "npsn": "20510486", "level": "SD", "address": "SLAHUNG, WATES", "pagu": 28}, {"originalNo": 165, "name": "SD NEGERI 1 WATUBONANG", "npsn": "20510497", "level": "SD", "address": "BADEGAN, BADEGAN", "pagu": 28}, {"originalNo": 166, "name": "SD NEGERI 1 WINONG", "npsn": "20510498", "level": "SD", "address": "JETIS, WINONG", "pagu": 28}, {"originalNo": 167, "name": "SD NEGERI 1 WONODADI", "npsn": "20510509", "level": "SD", "address": "NGRAYUN, WONODADI", "pagu": 28}, {"originalNo": 168, "name": "SD NEGERI 1 WONOKETRO", "npsn": "20510508", "level": "SD", "address": "JETIS, WONOKETRO", "pagu": 28}, {"originalNo": 169, "name": "SD NEGERI 1 WOTAN", "npsn": "20510507", "level": "SD", "address": "PULUNG, WOTAN", "pagu": 28}, {"originalNo": 170, "name": "SD NEGERI 1 WRINGINANOM", "npsn": "20510506", "level": "SD", "address": "SAMBIT, WRINGINANOM", "pagu": 28}, {"originalNo": 171, "name": "SD NEGERI 2 BABADAN", "npsn": "20510505", "level": "SD", "address": "BABADAN, BABADAN", "pagu": 28}, {"originalNo": 172, "name": "SD NEGERI 2 BADEGAN", "npsn": "20510504", "level": "SD", "address": "BADEGAN, BADEGAN", "pagu": 28}, {"originalNo": 173, "name": "SD NEGERI 2 BANCANGAN", "npsn": "20510501", "level": "SD", "address": "SAMBIT, BANCANGAN", "pagu": 28}, {"originalNo": 174, "name": "SD NEGERI 2 BANCAR", "npsn": "20510500", "level": "SD", "address": "BUNGKAL, BANCAR", "pagu": 28}, {"originalNo": 175, "name": "SD NEGERI 2 BANGSALAN", "npsn": "20510499", "level": "SD", "address": "SAMBIT, BANGSALAN", "pagu": 28}, {"originalNo": 176, "name": "SD NEGERI 2 BANJARJO", "npsn": "20510578", "level": "SD", "address": "PUDAK, BANJAREJO", "pagu": 28}, {"originalNo": 177, "name": "SD NEGERI 2 BANYUDONO", "npsn": "20510577", "level": "SD", "address": "PONOROGO, BANYUDONO", "pagu": 28}, {"originalNo": 178, "name": "SD NEGERI 2 BAOSAN KIDUL", "npsn": "20510576", "level": "SD", "address": "NGRAYUN, BAOSAN KIDUL", "pagu": 28}, {"originalNo": 179, "name": "SD NEGERI 2 BAOSAN LOR", "npsn": "20510575", "level": "SD", "address": "NGRAYUN, BAOSAN LOR", "pagu": 28}, {"originalNo": 180, "name": "SD NEGERI 2 BARENG", "npsn": "20510574", "level": "SD", "address": "PUDAK, BARENG", "pagu": 28}, {"originalNo": 181, "name": "SD NEGERI 2 BEDIKULON", "npsn": "20510573", "level": "SD", "address": "BUNGKAL, BEDIKULON", "pagu": 28}, {"originalNo": 182, "name": "SD NEGERI 2 BEDOHO", "npsn": "20510571", "level": "SD", "address": "SOOKO, BEDOHO", "pagu": 28}, {"originalNo": 183, "name": "SD NEGERI 2 BEKIRING", "npsn": "20510568", "level": "SD", "address": "PULUNG, BEKIRING", "pagu": 28}, {"originalNo": 184, "name": "SD NEGERI 2 BINADE", "npsn": "20510579", "level": "SD", "address": "NGRAYUN, BINADE", "pagu": 28}, {"originalNo": 185, "name": "SD NEGERI 2 BLEMBEM", "npsn": "20510580", "level": "SD", "address": "JAMBON, BLEMBEM", "pagu": 28}, {"originalNo": 186, "name": "SD NEGERI 2 BRINGIN", "npsn": "20510590", "level": "SD", "address": "KAUMAN, BRINGIN", "pagu": 28}, {"originalNo": 187, "name": "SD NEGERI 2 BROTONEGARAN", "npsn": "20510589", "level": "SD", "address": "PONOROGO, BROTONEGARAN", "pagu": 56}, {"originalNo": 188, "name": "SD NEGERI 2 BULU LOR", "npsn": "20510588", "level": "SD", "address": "JAMBON, BULU LOR", "pagu": 28}, {"originalNo": 189, "name": "SD NEGERI 2 CALUK", "npsn": "20510587", "level": "SD", "address": "SLAHUNG, CALUK", "pagu": 28}, {"originalNo": 190, "name": "SD NEGERI 2 CANDI", "npsn": "20510586", "level": "SD", "address": "MLARAK, CANDI", "pagu": 28}, {"originalNo": 191, "name": "SD NEGERI 2 CARANGREJO", "npsn": "20510585", "level": "SD", "address": "SAMPUNG, RINGINPUTIH", "pagu": 28}, {"originalNo": 192, "name": "SD NEGERI 2 CARAT", "npsn": "20510584", "level": "SD", "address": "KAUMAN, CARAT", "pagu": 28}, {"originalNo": 193, "name": "SD NEGERI 2 CEPOKO", "npsn": "20510583", "level": "SD", "address": "NGRAYUN, CEPOKO", "pagu": 28}, {"originalNo": 194, "name": "SD NEGERI 2 COKROMENGGALAN", "npsn": "20510582", "level": "SD", "address": "PONOROGO, COKROMENGGALAN", "pagu": 28}, {"originalNo": 195, "name": "SD NEGERI 2 DAYAKAN", "npsn": "20510566", "level": "SD", "address": "BADEGAN, DAYAKAN", "pagu": 28}, {"originalNo": 196, "name": "SD NEGERI 2 GABEL", "npsn": "20510549", "level": "SD", "address": "KAUMAN, CILUK", "pagu": 28}, {"originalNo": 197, "name": "SD NEGERI 2 GAJAH", "npsn": "20510548", "level": "SD", "address": "SAMBIT, GAJAH", "pagu": 28}, {"originalNo": 198, "name": "SD NEGERI 2 GANDUKEPUH", "npsn": "20510547", "level": "SD", "address": "SUKOREJO, GANDUKEPUH", "pagu": 28}, {"originalNo": 199, "name": "SD NEGERI 2 GELANGKULON", "npsn": "20510545", "level": "SD", "address": "SAMPUNG, GELANGKULON", "pagu": 28}, {"originalNo": 200, "name": "SD NEGERI 2 GELANGLOR", "npsn": "20510544", "level": "SD", "address": "SUKOREJO, GELANG LOR", "pagu": 28}, {"originalNo": 201, "name": "SD NEGERI 2 GLINGGANG", "npsn": "20510543", "level": "SD", "address": "SAMPUNG, GLINGGANG", "pagu": 28}, {"originalNo": 202, "name": "SD NEGERI 2 GROGOL", "npsn": "20510542", "level": "SD", "address": "SAWOO, GROGOL", "pagu": 28}, {"originalNo": 203, "name": "SD NEGERI 2 JABUNG", "npsn": "20510541", "level": "SD", "address": "MLARAK, JABUNG", "pagu": 28}, {"originalNo": 204, "name": "SD NEGERI 2 JARAK", "npsn": "20510539", "level": "SD", "address": "SIMAN, JARAK", "pagu": 28}, {"originalNo": 205, "name": "SD NEGERI 2 JENANGAN", "npsn": "20545347", "level": "SD", "address": "SAMPUNG, JENANGAN", "pagu": 28}, {"originalNo": 206, "name": "SD NEGERI 2 JENANGAN", "npsn": "20510551", "level": "SD", "address": "JENANGAN, JENANGAN", "pagu": 28}, {"originalNo": 207, "name": "SD NEGERI 2 JONGGOL", "npsn": "20539051", "level": "SD", "address": "JAMBON, JONGGOL", "pagu": 28}, {"originalNo": 208, "name": "SD NEGERI 2 JOSARI", "npsn": "20510562", "level": "SD", "address": "JETIS, JOSARI", "pagu": 28}, {"originalNo": 209, "name": "SD NEGERI 2 JURUG", "npsn": "20510561", "level": "SD", "address": "SOOKO, JURUG", "pagu": 28}, {"originalNo": 210, "name": "SD NEGERI 2 KADIPATEN", "npsn": "20510560", "level": "SD", "address": "BABADAN, KADIPATEN", "pagu": 28}, {"originalNo": 211, "name": "SD NEGERI 2 KALISAT", "npsn": "20510559", "level": "SD", "address": "BUNGKAL, KALISAT", "pagu": 28}, {"originalNo": 212, "name": "SD NEGERI 2 KAPONAN", "npsn": "20510558", "level": "SD", "address": "MLARAK, KAPONAN", "pagu": 28}, {"originalNo": 213, "name": "SD NEGERI 2 KARANGAN", "npsn": "20552197", "level": "SD", "address": "BADEGAN, KARANGAN", "pagu": 28}, {"originalNo": 214, "name": "SD NEGERI 2 KARANGGEBANG", "npsn": "20510554", "level": "SD", "address": "JETIS, KARANGGEBANG", "pagu": 28}, {"originalNo": 215, "name": "SD NEGERI 2 KARANGJOHO", "npsn": "20510553", "level": "SD", "address": "BADEGAN, KARANGJOHO", "pagu": 28}, {"originalNo": 216, "name": "SD NEGERI 2 KARANGLO KIDUL", "npsn": "20510552", "level": "SD", "address": "JAMBON, KARANGLO KIDUL", "pagu": 28}, {"originalNo": 217, "name": "SD NEGERI 2 KARANGPATIHAN", "npsn": "20510267", "level": "SD", "address": "PULUNG, KARANGPATIHAN", "pagu": 28}, {"originalNo": 218, "name": "SD NEGERI 2 KARANGPATIHAN", "npsn": "20551919", "level": "SD", "address": "BALONG, KARANGPATIHAN", "pagu": 28}, {"originalNo": 219, "name": "SD NEGERI 2 KARANGWALUH", "npsn": "20509952", "level": "SD", "address": "SAMPUNG, KARANGWALUH", "pagu": 28}, {"originalNo": 220, "name": "SD NEGERI 2 KAUMAN", "npsn": "20509951", "level": "SD", "address": "PONOROGO, KAUMAN", "pagu": 28}, {"originalNo": 221, "name": "SD NEGERI 2 KAUMAN", "npsn": "20509950", "level": "SD", "address": "KAUMAN, KAUMAN", "pagu": 28}, {"originalNo": 222, "name": "SD NEGERI 2 KEDUNGBANTENG", "npsn": "20509949", "level": "SD", "address": "SUKOREJO, KEDUNGBANTENG", "pagu": 28}, {"originalNo": 223, "name": "SD NEGERI 2 KEMIRI", "npsn": "20509948", "level": "SD", "address": "JENANGAN, KEMIRI", "pagu": 28}, {"originalNo": 224, "name": "SD NEGERI 2 KENITEN", "npsn": "20509947", "level": "SD", "address": "PONOROGO, KENITEN", "pagu": 28}, {"originalNo": 225, "name": "SD NEGERI 2 KERTOSARI", "npsn": "20509946", "level": "SD", "address": "BABADAN, KERTOSARI", "pagu": 28}, {"originalNo": 226, "name": "SD NEGERI 2 KESUGIHAN", "npsn": "20509945", "level": "SD", "address": "PULUNG, KESUGIHAN", "pagu": 28}, {"originalNo": 227, "name": "SD NEGERI 2 KLEPU", "npsn": "20509944", "level": "SD", "address": "SOOKO, KLEPU", "pagu": 28}, {"originalNo": 228, "name": "SD NEGERI 2 KORI", "npsn": "20509943", "level": "SD", "address": "SAWOO, KORI", "pagu": 28}, {"originalNo": 229, "name": "SD NEGERI 2 KREBET", "npsn": "20509942", "level": "SD", "address": "JAMBON, KREBET", "pagu": 28}, {"originalNo": 230, "name": "SD NEGERI 2 KUNTI", "npsn": "20509953", "level": "SD", "address": "SAMPUNG, KUNTI", "pagu": 28}, {"originalNo": 231, "name": "SD NEGERI 2 KUPUK", "npsn": "20509954", "level": "SD", "address": "BUNGKAL, KUPUK", "pagu": 28}, {"originalNo": 232, "name": "SD NEGERI 2 LEMBAH", "npsn": "20509964", "level": "SD", "address": "BABADAN, LEMBAH", "pagu": 28}, {"originalNo": 233, "name": "SD NEGERI 2 MADUSARI", "npsn": "20509963", "level": "SD", "address": "SIMAN, MADUSARI", "pagu": 28}, {"originalNo": 234, "name": "SD NEGERI 2 MAGUAN", "npsn": "20509962", "level": "SD", "address": "SAMBIT, MAGUWAN", "pagu": 28}, {"originalNo": 235, "name": "SD NEGERI 2 MANGKUJAYAN", "npsn": "20509961", "level": "SD", "address": "PONOROGO, MANGKUJAYAN", "pagu": 28}, {"originalNo": 236, "name": "SD NEGERI 2 MARON", "npsn": "20539042", "level": "SD", "address": "KAUMAN, MARON", "pagu": 28}, {"originalNo": 237, "name": "SD NEGERI 2 MRAYAN", "npsn": "20509960", "level": "SD", "address": "NGRAYUN, MRAYAN", "pagu": 28}, {"originalNo": 238, "name": "SD NEGERI 2 MRICAN", "npsn": "20509959", "level": "SD", "address": "JENANGAN, MRICAN", "pagu": 28}, {"originalNo": 239, "name": "SD NEGERI 2 MUNGGU", "npsn": "20509957", "level": "SD", "address": "BUNGKAL, MUNGGU", "pagu": 28}, {"originalNo": 240, "name": "SD NEGERI 2 MUNGGUNG", "npsn": "20509956", "level": "SD", "address": "PULUNG, MUNGGUNG", "pagu": 28}, {"originalNo": 241, "name": "SD NEGERI 2 NAMBANGREJO", "npsn": "20509955", "level": "SD", "address": "SUKOREJO, NAMBANGREJO", "pagu": 28}, {"originalNo": 242, "name": "SD NEGERI 2 NGADISANAN", "npsn": "20509940", "level": "SD", "address": "SAMBIT, NGADISANAN", "pagu": 28}, {"originalNo": 243, "name": "SD NEGERI 2 NGEBEL", "npsn": "20509924", "level": "SD", "address": "NGEBEL, NGEBEL", "pagu": 28}, {"originalNo": 244, "name": "SD NEGERI 2 NGILO-ILO", "npsn": "20509922", "level": "SD", "address": "SLAHUNG, NGILO-ILO", "pagu": 28}, {"originalNo": 245, "name": "SD NEGERI 2 NGINDENG", "npsn": "20509921", "level": "SD", "address": "SAWOO, NGINDENG", "pagu": 28}, {"originalNo": 246, "name": "SD NEGERI 2 NGLAYANG", "npsn": "20509920", "level": "SD", "address": "JENANGAN, NGLAYANG", "pagu": 28}, {"originalNo": 247, "name": "SD NEGERI 2 NGLUMPANG", "npsn": "20509919", "level": "SD", "address": "MLARAK, NGLUMPANG", "pagu": 28}, {"originalNo": 248, "name": "SD NEGERI 2 NGLURUP", "npsn": "20509918", "level": "SD", "address": "SAMPUNG, NGLURUP", "pagu": 28}, {"originalNo": 249, "name": "SD NEGERI 2 NGRANDU", "npsn": "20509917", "level": "SD", "address": "KAUMAN, NGRANDU", "pagu": 28}, {"originalNo": 250, "name": "SD NEGERI 2 NGRAYUN", "npsn": "20509916", "level": "SD", "address": "NGRAYUN, NGRAYUN", "pagu": 28}, {"originalNo": 251, "name": "SD NEGERI 2 NGROGUNG", "npsn": "20539045", "level": "SD", "address": "NGEBEL, NGROGUNG", "pagu": 28}, {"originalNo": 252, "name": "SD NEGERI 2 NGRUPIT", "npsn": "20509915", "level": "SD", "address": "JENANGAN, NGRUPIT", "pagu": 28}, {"originalNo": 253, "name": "SD NEGERI 2 NOLOGATEN", "npsn": "20509927", "level": "SD", "address": "PONOROGO, NOLOGATEN", "pagu": 28}, {"originalNo": 254, "name": "SD NEGERI 2 PAGERUKIR", "npsn": "20509938", "level": "SD", "address": "SAMPUNG, PAGERUKIR", "pagu": 28}, {"originalNo": 255, "name": "SD NEGERI 2 PANDAK", "npsn": "20509935", "level": "SD", "address": "BALONG, PANDAK", "pagu": 28}, {"originalNo": 256, "name": "SD NEGERI 2 PANGKAL", "npsn": "20509934", "level": "SD", "address": "SAWOO, PANGKAL", "pagu": 28}, {"originalNo": 257, "name": "SD NEGERI 2 PARINGAN", "npsn": "20509933", "level": "SD", "address": "JENANGAN, PARINGAN", "pagu": 28}, {"originalNo": 258, "name": "SD NEGERI 2 PELEM", "npsn": "20509932", "level": "SD", "address": "BUNGKAL, PELEM", "pagu": 28}, {"originalNo": 259, "name": "SD NEGERI 2 PIJERAN", "npsn": "20509931", "level": "SD", "address": "SIMAN, PIJERAN", "pagu": 28}, {"originalNo": 260, "name": "SD NEGERI 2 PLALANGAN", "npsn": "20509929", "level": "SD", "address": "JENANGAN, PLALANGAN", "pagu": 28}, {"originalNo": 261, "name": "SD NEGERI 2 PLOSOJENAR", "npsn": "20509928", "level": "SD", "address": "KAUMAN, PLOSOJENAR", "pagu": 28}, {"originalNo": 262, "name": "SD NEGERI 2 PLUNTURAN", "npsn": "20509914", "level": "SD", "address": "PULUNG, PLUNTURAN", "pagu": 28}, {"originalNo": 263, "name": "SD NEGERI 2 POKO", "npsn": "20510040", "level": "SD", "address": "JAMBON, POKO", "pagu": 28}, {"originalNo": 264, "name": "SD NEGERI 2 POLOREJO", "npsn": "20510026", "level": "SD", "address": "BABADAN, POLOREJO", "pagu": 28}, {"originalNo": 265, "name": "SD NEGERI 2 POMAHAN", "npsn": "20510025", "level": "SD", "address": "PULUNG, POMAHAN", "pagu": 28}, {"originalNo": 266, "name": "SD NEGERI 2 PONDOK", "npsn": "20510024", "level": "SD", "address": "BABADAN, PONDOK", "pagu": 28}, {"originalNo": 267, "name": "SD NEGERI 2 PRAJEGAN", "npsn": "20510023", "level": "SD", "address": "SUKOREJO, PRAJEGAN", "pagu": 28}, {"originalNo": 268, "name": "SD NEGERI 2 PRAYUNGAN", "npsn": "20510022", "level": "SD", "address": "SAWOO, PRAYUNGAN", "pagu": 28}, {"originalNo": 269, "name": "SD NEGERI 2 PULUNG", "npsn": "20510021", "level": "SD", "address": "PULUNG, PULUNG", "pagu": 28}, {"originalNo": 270, "name": "SD NEGERI 2 PUPUS", "npsn": "20510020", "level": "SD", "address": "NGEBEL, PUPUS", "pagu": 28}, {"originalNo": 271, "name": "SD NEGERI 2 PURWOSARI", "npsn": "20510018", "level": "SD", "address": "BABADAN, PURWOSARI", "pagu": 28}, {"originalNo": 272, "name": "SD NEGERI 2 RONOWIJAYAN", "npsn": "20510017", "level": "SD", "address": "SIMAN, RONOWIJAYAN", "pagu": 28}, {"originalNo": 273, "name": "SD NEGERI 2 SAMBILAWANG", "npsn": "20510016", "level": "SD", "address": "BUNGKAL, SAMBILAWANG", "pagu": 28}, {"originalNo": 274, "name": "SD NEGERI 2 SAMPUNG", "npsn": "20510028", "level": "SD", "address": "SAMPUNG, SAMPUNG", "pagu": 28}, {"originalNo": 275, "name": "SD NEGERI 2 SAWOO", "npsn": "20510039", "level": "SD", "address": "SAWOO, SAWOO", "pagu": 28}, {"originalNo": 276, "name": "SD NEGERI 2 SEDARAT", "npsn": "20510038", "level": "SD", "address": "BALONG, SEDARAT", "pagu": 28}, {"originalNo": 277, "name": "SD NEGERI 2 SELUR", "npsn": "20510036", "level": "SD", "address": "NGRAYUN, SELUR", "pagu": 56}, {"originalNo": 278, "name": "SD NEGERI 2 SEMANDING", "npsn": "20510034", "level": "SD", "address": "JENANGAN, SEMANDING", "pagu": 28}, {"originalNo": 279, "name": "SD NEGERI 2 SEMANDING KAUMAN", "npsn": "20510035", "level": "SD", "address": "KAUMAN, SEMANDING", "pagu": 28}, {"originalNo": 280, "name": "SD NEGERI 2 SENDANG", "npsn": "20510033", "level": "SD", "address": "NGRAYUN, SENDANG", "pagu": 28}, {"originalNo": 281, "name": "SD NEGERI 2 SENDANG", "npsn": "20510032", "level": "SD", "address": "JAMBON, SENDANG", "pagu": 28}, {"originalNo": 282, "name": "SD NEGERI 2 SENEPO", "npsn": "20510031", "level": "SD", "address": "SLAHUNG, SENEPO", "pagu": 28}, {"originalNo": 283, "name": "SD NEGERI 2 SERANGAN", "npsn": "20510030", "level": "SD", "address": "SUKOREJO, SERANGAN", "pagu": 28}, {"originalNo": 284, "name": "SD NEGERI 2 SIDOHARJO", "npsn": "20510835", "level": "SD", "address": "PULUNG, PULUNG", "pagu": 28}, {"originalNo": 285, "name": "SD NEGERI 2 SIDOREJO", "npsn": "20510015", "level": "SD", "address": "SUKOREJO, SIDOREJO", "pagu": 28}, {"originalNo": 286, "name": "SD NEGERI 2 SIMO", "npsn": "20510013", "level": "SD", "address": "SLAHUNG, SIMO", "pagu": 28}, {"originalNo": 287, "name": "SD NEGERI 2 SINGGAHAN", "npsn": "20509978", "level": "SD", "address": "PULUNG, SINGGAHAN", "pagu": 28}, {"originalNo": 288, "name": "SD NEGERI 2 SIWALAN", "npsn": "20509976", "level": "SD", "address": "MLARAK, SIWALAN", "pagu": 28}, {"originalNo": 289, "name": "SD NEGERI 2 SOMOROTO", "npsn": "20509974", "level": "SD", "address": "KAUMAN, SOMOROTO", "pagu": 56}, {"originalNo": 290, "name": "SD NEGERI 2 SRITI", "npsn": "20509972", "level": "SD", "address": "SAWOO, SRITI", "pagu": 28}, {"originalNo": 291, "name": "SD NEGERI 2 SUKOREJO", "npsn": "20509971", "level": "SD", "address": "SUKOREJO, SIDOREJO", "pagu": 28}, {"originalNo": 292, "name": "SD NEGERI 2 SUKOSARI", "npsn": "20509970", "level": "SD", "address": "BABADAN, SUKOSARI", "pagu": 28}, {"originalNo": 293, "name": "SD NEGERI 2 SUREN", "npsn": "20539048", "level": "SD", "address": "MLARAK, SUREN", "pagu": 28}, {"originalNo": 294, "name": "SD NEGERI 2 SURU", "npsn": "20509968", "level": "SD", "address": "SOOKO, SURU", "pagu": 28}, {"originalNo": 295, "name": "SD NEGERI 2 TAJUG", "npsn": "20509979", "level": "SD", "address": "SIMAN, TAJUG", "pagu": 28}, {"originalNo": 296, "name": "SD NEGERI 2 TALUN", "npsn": "20509980", "level": "SD", "address": "NGEBEL, TALUN", "pagu": 28}, {"originalNo": 297, "name": "SD NEGERI 2 TANJUNGGUNUNG", "npsn": "20510011", "level": "SD", "address": "BADEGAN, TANJUNGGUNUNG", "pagu": 28}, {"originalNo": 298, "name": "SD NEGERI 2 TANJUNGREJO", "npsn": "20510010", "level": "SD", "address": "BADEGAN, TANJUNGREJO", "pagu": 28}, {"originalNo": 299, "name": "SD NEGERI 2 TANJUNGSARI", "npsn": "20509989", "level": "SD", "address": "JENANGAN, TANJUNGSARI", "pagu": 28}, {"originalNo": 300, "name": "SD NEGERI 2 TEGALOMBO", "npsn": "20509987", "level": "SD", "address": "KAUMAN, TEGALOMBO", "pagu": 28}, {"originalNo": 301, "name": "SD NEGERI 2 TEGALREJO", "npsn": "20509986", "level": "SD", "address": "PULUNG, TEGALREJO", "pagu": 28}, {"originalNo": 302, "name": "SD NEGERI 2 TEMON", "npsn": "20509984", "level": "SD", "address": "NGRAYUN, TEMON", "pagu": 28}, {"originalNo": 303, "name": "SD NEGERI 2 TEMON", "npsn": "20551758", "level": "SD", "address": "SAWOO, TEMON", "pagu": 28}, {"originalNo": 304, "name": "SD NEGERI 2 TEMPURAN", "npsn": "20509983", "level": "SD", "address": "SAWOO, TEMPURAN", "pagu": 28}, {"originalNo": 305, "name": "SD NEGERI 2 TONATAN PONOROGO", "npsn": "20509982", "level": "SD", "address": "PONOROGO, TONATAN", "pagu": 28}, {"originalNo": 306, "name": "SD NEGERI 2 TOTOKAN", "npsn": "20509981", "level": "SD", "address": "MLARAK, TOTOKAN", "pagu": 28}, {"originalNo": 307, "name": "SD NEGERI 2 TRISONO", "npsn": "20509913", "level": "SD", "address": "BABADAN, TRISONO", "pagu": 28}, {"originalNo": 308, "name": "SD NEGERI 2 TUGU", "npsn": "20509857", "level": "SD", "address": "MLARAK, TUGU", "pagu": 28}, {"originalNo": 309, "name": "SD NEGERI 2 TUGUREJO", "npsn": "20509843", "level": "SD", "address": "SLAHUNG, TUGUREJO", "pagu": 28}, {"originalNo": 310, "name": "SD NEGERI 2 TULUNG", "npsn": "20509842", "level": "SD", "address": "SAMPUNG, TULUNG", "pagu": 28}, {"originalNo": 311, "name": "SD NEGERI 2 TUMPAKPELEM", "npsn": "20509841", "level": "SD", "address": "SAWOO, TUMPAK PELEM", "pagu": 28}, {"originalNo": 312, "name": "SD NEGERI 2 TUMPUK", "npsn": "20509840", "level": "SD", "address": "SAWOO, TUMPUK", "pagu": 28}, {"originalNo": 313, "name": "SD NEGERI 2 WAGIRKIDUL", "npsn": "20509838", "level": "SD", "address": "PULUNG, WAGIR KIDUL", "pagu": 28}, {"originalNo": 314, "name": "SD NEGERI 2 WATES", "npsn": "20551857", "level": "SD", "address": "JENANGAN, WATES", "pagu": 28}, {"originalNo": 315, "name": "SD NEGERI 2 WATES", "npsn": "20509836", "level": "SD", "address": "SLAHUNG, WATES", "pagu": 28}, {"originalNo": 316, "name": "SD NEGERI 2 WATUBONANG", "npsn": "20509835", "level": "SD", "address": "BADEGAN, WATUBONANG", "pagu": 28}, {"originalNo": 317, "name": "SD NEGERI 2 WONODADI", "npsn": "20509833", "level": "SD", "address": "NGRAYUN, WONODADI", "pagu": 28}, {"originalNo": 318, "name": "SD NEGERI 2 WONOKETRO", "npsn": "20509844", "level": "SD", "address": "JETIS, WONOKETRO", "pagu": 28}, {"originalNo": 319, "name": "SD NEGERI 2 WOTAN", "npsn": "20509845", "level": "SD", "address": "PULUNG, WOTAN", "pagu": 28}, {"originalNo": 320, "name": "SD NEGERI 2 WRINGINANOM", "npsn": "20509856", "level": "SD", "address": "SAMBIT, WRINGINANOM", "pagu": 28}, {"originalNo": 321, "name": "SD NEGERI 3 BABADAN", "npsn": "20509855", "level": "SD", "address": "BABADAN, BABADAN", "pagu": 28}, {"originalNo": 322, "name": "SD NEGERI 3 BADEGAN", "npsn": "20509854", "level": "SD", "address": "BADEGAN, BADEGAN", "pagu": 28}, {"originalNo": 323, "name": "SD NEGERI 3 BALONG", "npsn": "20509853", "level": "SD", "address": "BALONG, BALONG", "pagu": 28}, {"originalNo": 324, "name": "SD NEGERI 3 BANGUNREJO", "npsn": "20509852", "level": "SD", "address": "SUKOREJO, BANGUNREJO", "pagu": 28}, {"originalNo": 325, "name": "SD NEGERI 3 BANGUNSARI", "npsn": "20509851", "level": "SD", "address": "PONOROGO, BANGUNSARI", "pagu": 84}, {"originalNo": 326, "name": "SD NEGERI 3 BANJARJO", "npsn": "20509850", "level": "SD", "address": "PUDAK, BANJAREJO", "pagu": 28}, {"originalNo": 327, "name": "SD NEGERI 3 BAOSAN KIDUL", "npsn": "20509849", "level": "SD", "address": "NGRAYUN, GEDANGAN", "pagu": 28}, {"originalNo": 328, "name": "SD NEGERI 3 BAOSAN LOR", "npsn": "20509848", "level": "SD", "address": "NGRAYUN, BAOSAN LOR", "pagu": 28}, {"originalNo": 329, "name": "SD NEGERI 3 BEDOHO", "npsn": "20509847", "level": "SD", "address": "SOOKO, BEDOHO", "pagu": 28}, {"originalNo": 330, "name": "SD NEGERI 3 BEDRUG", "npsn": "20509846", "level": "SD", "address": "PULUNG, BEDRUG", "pagu": 28}, {"originalNo": 331, "name": "SD NEGERI 3 BINADE", "npsn": "20509832", "level": "SD", "address": "NGRAYUN", "pagu": 28}, {"originalNo": 332, "name": "SD NEGERI 3 BLEMBEM", "npsn": "20509831", "level": "SD", "address": "JAMBON, BLEMBEM", "pagu": 28}, {"originalNo": 333, "name": "SD NEGERI 3 CARANGREJO", "npsn": "20509816", "level": "SD", "address": "SAMPUNG, CARANGREJO", "pagu": 28}, {"originalNo": 334, "name": "SD NEGERI 3 CEPOKO", "npsn": "20509815", "level": "SD", "address": "NGRAYUN, CEPOKO", "pagu": 28}, {"originalNo": 335, "name": "SD NEGERI 3 DURI", "npsn": "20509814", "level": "SD", "address": "SLAHUNG, DURI", "pagu": 28}, {"originalNo": 336, "name": "SD NEGERI 3 GAJAH", "npsn": "20509813", "level": "SD", "address": "SAMBIT, GAJAH", "pagu": 28}, {"originalNo": 337, "name": "SD NEGERI 3 GELANGLOR", "npsn": "20509811", "level": "SD", "address": "SUKOREJO, GELANG LOR", "pagu": 28}, {"originalNo": 338, "name": "SD NEGERI 3 GROGOL", "npsn": "20509810", "level": "SD", "address": "SAWOO, GROGOL", "pagu": 28}, {"originalNo": 339, "name": "SD NEGERI 3 JIMBE", "npsn": "20509805", "level": "SD", "address": "JENANGAN, JIMBE", "pagu": 28}, {"originalNo": 340, "name": "SD NEGERI 3 JURUG", "npsn": "20509806", "level": "SD", "address": "SOOKO, JURUG", "pagu": 28}, {"originalNo": 341, "name": "SD NEGERI 3 KARANGAN", "npsn": "20509807", "level": "SD", "address": "BADEGAN, KARANGAN", "pagu": 28}, {"originalNo": 342, "name": "SD NEGERI 3 KARANGGEBANG", "npsn": "20509808", "level": "SD", "address": "JETIS, KARANGGEBANG", "pagu": 28}, {"originalNo": 343, "name": "SD NEGERI 3 KARANGPATIHAN", "npsn": "20509809", "level": "SD", "address": "BALONG, KARANGPATIHAN", "pagu": 28}, {"originalNo": 344, "name": "SD NEGERI 3 KEDUNGBANTENG", "npsn": "20509817", "level": "SD", "address": "SUKOREJO, KEDUNGBANTENG", "pagu": 28}, {"originalNo": 345, "name": "SD NEGERI 3 KEMIRI", "npsn": "20509818", "level": "SD", "address": "JENANGAN, KEMIRI", "pagu": 28}, {"originalNo": 346, "name": "SD NEGERI 3 KESUGIHAN", "npsn": "20509829", "level": "SD", "address": "PULUNG, KESUGIHAN", "pagu": 28}, {"originalNo": 347, "name": "SD NEGERI 3 KREBET", "npsn": "20509828", "level": "SD", "address": "JAMBON, KREBET", "pagu": 56}, {"originalNo": 348, "name": "SD NEGERI 3 KUNTI", "npsn": "20509827", "level": "SD", "address": "SAMPUNG, KUNTI", "pagu": 28}, {"originalNo": 349, "name": "SD NEGERI 3 LEMBAH", "npsn": "20509826", "level": "SD", "address": "BABADAN, LEMBAH", "pagu": 28}, {"originalNo": 350, "name": "SD NEGERI 3 MANGKUJAYAN", "npsn": "20509825", "level": "SD", "address": "PONOROGO, MANGKUJAYAN", "pagu": 28}, {"originalNo": 351, "name": "SD NEGERI 3 MRAYAN", "npsn": "20509824", "level": "SD", "address": "NGRAYUN, MRAYAN", "pagu": 28}, {"originalNo": 352, "name": "SD NEGERI 3 MRICAN", "npsn": "20509823", "level": "SD", "address": "JENANGAN, MRICAN", "pagu": 28}, {"originalNo": 353, "name": "SD NEGERI 3 MUNGGU", "npsn": "20509822", "level": "SD", "address": "BUNGKAL, MUNGGU", "pagu": 28}, {"originalNo": 354, "name": "SD NEGERI 3 MUNGGUNG", "npsn": "20509821", "level": "SD", "address": "PULUNG, MUNGGUNG", "pagu": 28}, {"originalNo": 355, "name": "SD NEGERI 3 NGADIROJO", "npsn": "20509820", "level": "SD", "address": "SOOKO, NGADIROJO", "pagu": 28}, {"originalNo": 356, "name": "SD NEGERI 3 NGASINAN", "npsn": "20509819", "level": "SD", "address": "JETIS, NGASINAN", "pagu": 28}, {"originalNo": 357, "name": "SD NEGERI 3 NGEBEL", "npsn": "20509830", "level": "SD", "address": "NGEBEL, NGEBEL", "pagu": 28}, {"originalNo": 358, "name": "SD NEGERI 3 NGILO ILO", "npsn": "20509912", "level": "SD", "address": "SLAHUNG, NGILO-ILO", "pagu": 28}, {"originalNo": 359, "name": "SD NEGERI 3 NGRAYUN", "npsn": "20539043", "level": "SD", "address": "NGRAYUN, NGRAYUN", "pagu": 28}, {"originalNo": 360, "name": "SD NEGERI 3 NGROGUNG", "npsn": "20509898", "level": "SD", "address": "NGEBEL, NGROGUNG", "pagu": 28}, {"originalNo": 361, "name": "SD NEGERI 3 NGRUPIT", "npsn": "20509897", "level": "SD", "address": "JENANGAN, NGRUPIT", "pagu": 28}, {"originalNo": 362, "name": "SD NEGERI 3 PAGERUKIR", "npsn": "20509896", "level": "SD", "address": "SAMPUNG, PAGERUKIR", "pagu": 28}, {"originalNo": 363, "name": "SD NEGERI 3 PANDAK", "npsn": "20509895", "level": "SD", "address": "BALONG, PANDAK", "pagu": 28}, {"originalNo": 364, "name": "SD NEGERI 3 PANGKAL", "npsn": "20509894", "level": "SD", "address": "SAWOO, PANGKAL", "pagu": 28}, {"originalNo": 365, "name": "SD NEGERI 3 PARINGAN", "npsn": "20509893", "level": "SD", "address": "JENANGAN, PARINGAN", "pagu": 28}, {"originalNo": 366, "name": "SD NEGERI 3 PELEM", "npsn": "20509892", "level": "SD", "address": "BUNGKAL, PELEM", "pagu": 28}, {"originalNo": 367, "name": "SD NEGERI 3 PENGKOL", "npsn": "20509891", "level": "SD", "address": "KAUMAN, PENGKOL", "pagu": 28}, {"originalNo": 368, "name": "SD NEGERI 3 POMAHAN", "npsn": "20509889", "level": "SD", "address": "PULUNG, POMAHAN", "pagu": 28}, {"originalNo": 369, "name": "SD NEGERI 3 PRAJEGAN", "npsn": "20509887", "level": "SD", "address": "SUKOREJO, PRAJEGAN", "pagu": 28}, {"originalNo": 370, "name": "SD NEGERI 3 PULUNG", "npsn": "20509886", "level": "SD", "address": "PULUNG, PULUNG", "pagu": 28}, {"originalNo": 371, "name": "SD NEGERI 3 PURWOSARI", "npsn": "20509899", "level": "SD", "address": "BABADAN, PURWOSARI", "pagu": 28}, {"originalNo": 372, "name": "SD NEGERI 3 SAMPUNG", "npsn": "20509900", "level": "SD", "address": "SAMPUNG, SAMPUNG", "pagu": 28}, {"originalNo": 373, "name": "SD NEGERI 3 SAWOO", "npsn": "20509911", "level": "SD", "address": "SAWOO, SAWOO", "pagu": 28}, {"originalNo": 374, "name": "SD NEGERI 3 SELUR", "npsn": "20509910", "level": "SD", "address": "NGRAYUN, SELUR", "pagu": 28}, {"originalNo": 375, "name": "SD NEGERI 3 SENDANG", "npsn": "20509909", "level": "SD", "address": "NGRAYUN, SENDANG", "pagu": 28}, {"originalNo": 376, "name": "SD NEGERI 3 SENEPO", "npsn": "20509908", "level": "SD", "address": "SLAHUNG, SENEPO", "pagu": 28}, {"originalNo": 377, "name": "SD NEGERI 3 SLAHUNG", "npsn": "20509906", "level": "SD", "address": "SLAHUNG, SLAHUNG", "pagu": 28}, {"originalNo": 378, "name": "SD NEGERI 3 SOOKO", "npsn": "20509904", "level": "SD", "address": "SOOKO, SOOKO", "pagu": 28}, {"originalNo": 379, "name": "SD NEGERI 3 SUKOREJO", "npsn": "20509903", "level": "SD", "address": "SUKOREJO, SUKOREJO", "pagu": 28}, {"originalNo": 380, "name": "SD NEGERI 3 SUKOSARI", "npsn": "20509902", "level": "SD", "address": "BABADAN, SUKOSARI", "pagu": 28}, {"originalNo": 381, "name": "SD NEGERI 3 SURU", "npsn": "20509901", "level": "SD", "address": "SOOKO, SURU", "pagu": 28}, {"originalNo": 382, "name": "SD NEGERI 3 TALUN", "npsn": "20509885", "level": "SD", "address": "NGEBEL, TALUN", "pagu": 28}, {"originalNo": 383, "name": "SD NEGERI 3 TEMON", "npsn": "20509884", "level": "SD", "address": "NGRAYUN, TEMON", "pagu": 28}, {"originalNo": 384, "name": "SD NEGERI 3 TEMON", "npsn": "20554304", "level": "SD", "address": "SAWOO, TEMON", "pagu": 28}, {"originalNo": 385, "name": "SD NEGERI 3 TEMPURAN", "npsn": "20509869", "level": "SD", "address": "SAWOO, TEMPURAN", "pagu": 28}, {"originalNo": 386, "name": "SD NEGERI 3 TRISONO", "npsn": "20509868", "level": "SD", "address": "BABADAN, TRISONO", "pagu": 28}, {"originalNo": 387, "name": "SD NEGERI 3 TUGU", "npsn": "20509867", "level": "SD", "address": "MLARAK, TUGU", "pagu": 28}, {"originalNo": 388, "name": "SD NEGERI 3 TULUNG", "npsn": "20509865", "level": "SD", "address": "SAMPUNG, TULUNG", "pagu": 28}, {"originalNo": 389, "name": "SD NEGERI 3 TUMPAKPELEM", "npsn": "20509864", "level": "SD", "address": "SAWOO, TUMPAK PELEM", "pagu": 28}, {"originalNo": 390, "name": "SD NEGERI 3 WAGIR LOR", "npsn": "20509863", "level": "SD", "address": "NGEBEL, WAGIR LOR", "pagu": 28}, {"originalNo": 391, "name": "SD NEGERI 3 WATES", "npsn": "20509862", "level": "SD", "address": "SLAHUNG, WATES", "pagu": 28}, {"originalNo": 392, "name": "SD NEGERI 3 WATUBONANG", "npsn": "20509861", "level": "SD", "address": "BADEGAN, BADEGAN", "pagu": 28}, {"originalNo": 393, "name": "SD NEGERI 3 WONODADI", "npsn": "20509860", "level": "SD", "address": "NGRAYUN, WONODADI", "pagu": 28}, {"originalNo": 394, "name": "SD NEGERI 3 WRINGINANOM", "npsn": "20509859", "level": "SD", "address": "SAMBIT, WRINGINANOM", "pagu": 28}, {"originalNo": 395, "name": "SD NEGERI 4 BAOSAN KIDUL", "npsn": "20509870", "level": "SD", "address": "NGRAYUN, BAOSAN KIDUL", "pagu": 28}, {"originalNo": 396, "name": "SD NEGERI 4 BAOSAN LOR", "npsn": "20509871", "level": "SD", "address": "NGRAYUN, BAOSAN LOR", "pagu": 28}, {"originalNo": 397, "name": "SD NEGERI 4 BINADE", "npsn": "20509882", "level": "SD", "address": "NGRAYUN, BINADE", "pagu": 28}, {"originalNo": 398, "name": "SD NEGERI 4 CARANGREJO", "npsn": "20509881", "level": "SD", "address": "SAMPUNG, CARANGREJO", "pagu": 28}, {"originalNo": 399, "name": "SD NEGERI 4 CEPOKO", "npsn": "20509880", "level": "SD", "address": "NGRAYUN, CEPOKO", "pagu": 28}, {"originalNo": 400, "name": "SD NEGERI 4 GELANGKULON", "npsn": "20509879", "level": "SD", "address": "SAMPUNG, GELANGKULON", "pagu": 28}, {"originalNo": 401, "name": "SD NEGERI 4 GROGOL", "npsn": "20509878", "level": "SD", "address": "SAWOO, GROGOL", "pagu": 28}, {"originalNo": 402, "name": "SD NEGERI 4 JURUG", "npsn": "20509877", "level": "SD", "address": "SOOKO, JURUG", "pagu": 28}, {"originalNo": 403, "name": "SD NEGERI 4 KARANGPATIHAN", "npsn": "20509876", "level": "SD", "address": "BALONG, KARANGPATIHAN", "pagu": 28}, {"originalNo": 404, "name": "SD NEGERI 4 KEDUNGBANTENG", "npsn": "20509875", "level": "SD", "address": "SUKOREJO, KEDUNGBANTENG", "pagu": 28}, {"originalNo": 405, "name": "SD NEGERI 4 KREBET", "npsn": "20509874", "level": "SD", "address": "JAMBON, SIDOHARJO", "pagu": 28}, {"originalNo": 406, "name": "SD NEGERI 4 MANGKUJAYAN", "npsn": "20509873", "level": "SD", "address": "PONOROGO, MANGKUJAYAN", "pagu": 56}, {"originalNo": 407, "name": "SD NEGERI 4 MRAYAN", "npsn": "20509872", "level": "SD", "address": "NGRAYUN, MRAYAN", "pagu": 28}, {"originalNo": 408, "name": "SD NEGERI 4 NGADIROJO", "npsn": "20509858", "level": "SD", "address": "SOOKO, NGADIROJO", "pagu": 28}, {"originalNo": 409, "name": "SD NEGERI 4 NGASINAN", "npsn": "20510211", "level": "SD", "address": "JETIS, NGASINAN", "pagu": 28}, {"originalNo": 410, "name": "SD NEGERI 4 NGRAYUN", "npsn": "20510197", "level": "SD", "address": "NGRAYUN, NGRAYUN", "pagu": 28}, {"originalNo": 411, "name": "SD NEGERI 4 PANGKAL", "npsn": "20510196", "level": "SD", "address": "SAWOO, PANGKAL", "pagu": 28}, {"originalNo": 412, "name": "SD NEGERI 4 PARINGAN", "npsn": "20510195", "level": "SD", "address": "JENANGAN, PARINGAN", "pagu": 28}, {"originalNo": 413, "name": "SD NEGERI 4 POHIJO", "npsn": "20510194", "level": "SD", "address": "SAMPUNG, POHIJO", "pagu": 28}, {"originalNo": 414, "name": "SD NEGERI 4 SAMPUNG", "npsn": "20549440", "level": "SD", "address": "SAMPUNG, SAMPUNG", "pagu": 28}, {"originalNo": 415, "name": "SD NEGERI 4 SELUR", "npsn": "20510193", "level": "SD", "address": "NGRAYUN, SELUR", "pagu": 28}, {"originalNo": 416, "name": "SD NEGERI 4 SLAHUNG", "npsn": "20510192", "level": "SD", "address": "SLAHUNG, SLAHUNG", "pagu": 28}, {"originalNo": 417, "name": "SD NEGERI 4 SOOKO", "npsn": "20510191", "level": "SD", "address": "SOOKO, SOOKO", "pagu": 28}, {"originalNo": 418, "name": "SD NEGERI 4 SURU", "npsn": "20510190", "level": "SD", "address": "SOOKO, SURU", "pagu": 28}, {"originalNo": 419, "name": "SD NEGERI 4 TEMON", "npsn": "20510189", "level": "SD", "address": "SAWOO, TEMON", "pagu": 28}, {"originalNo": 420, "name": "SD NEGERI 4 TEMPURAN", "npsn": "20510188", "level": "SD", "address": "SAWOO, TEMPURAN", "pagu": 28}, {"originalNo": 421, "name": "SD NEGERI 4 TUMPAKPELEM", "npsn": "20510187", "level": "SD", "address": "SAWOO, TUMPAK PELEM", "pagu": 28}, {"originalNo": 422, "name": "SD NEGERI 4 WAGIR LOR", "npsn": "20510199", "level": "SD", "address": "NGEBEL, WAGIR LOR", "pagu": 28}, {"originalNo": 423, "name": "SD NEGERI 4 WAGIRKIDUL", "npsn": "20510198", "level": "SD", "address": "PULUNG, WAGIR KIDUL", "pagu": 28}, {"originalNo": 424, "name": "SD NEGERI 4 WATES", "npsn": "20510210", "level": "SD", "address": "SLAHUNG, WATES", "pagu": 28}, {"originalNo": 425, "name": "SD NEGERI 5 BAOSAN KIDUL", "npsn": "20510209", "level": "SD", "address": "NGRAYUN, GEDANGAN", "pagu": 28}, {"originalNo": 426, "name": "SD NEGERI 5 BAOSAN LOR", "npsn": "20510208", "level": "SD", "address": "NGRAYUN, BAOSAN LOR", "pagu": 28}, {"originalNo": 427, "name": "SD NEGERI 5 CARANGREJO", "npsn": "20510207", "level": "SD", "address": "SAMPUNG, CARANGREJO", "pagu": 28}, {"originalNo": 428, "name": "SD NEGERI 5 CEPOKO", "npsn": "20510206", "level": "SD", "address": "NGRAYUN, CEPOKO", "pagu": 28}, {"originalNo": 429, "name": "SD NEGERI 5 JURUG", "npsn": "20510205", "level": "SD", "address": "SOOKO, JURUG", "pagu": 28}, {"originalNo": 430, "name": "SD NEGERI 5 KREBET", "npsn": "20510204", "level": "SD", "address": "JAMBON, KREBET", "pagu": 28}, {"originalNo": 431, "name": "SD NEGERI 5 MRAYAN", "npsn": "20510203", "level": "SD", "address": "NGRAYUN, MRAYAN", "pagu": 28}, {"originalNo": 432, "name": "SD NEGERI 5 NGADIROJO", "npsn": "20510202", "level": "SD", "address": "SOOKO, NGADIROJO", "pagu": 28}, {"originalNo": 433, "name": "SD NEGERI 5 NGRAYUN", "npsn": "20510201", "level": "SD", "address": "NGRAYUN, NGRAYUN", "pagu": 28}, {"originalNo": 434, "name": "SD NEGERI 5 POHIJO", "npsn": "20510200", "level": "SD", "address": "SAMPUNG, POHIJO", "pagu": 28}, {"originalNo": 435, "name": "SD NEGERI 5 PRAJEGAN", "npsn": "20510186", "level": "SD", "address": "SUKOREJO, PRAJEGAN", "pagu": 28}, {"originalNo": 436, "name": "SD NEGERI 5 SAWOO", "npsn": "20551779", "level": "SD", "address": "SAWOO, SAWOO", "pagu": 28}, {"originalNo": 437, "name": "SD NEGERI 5 SELUR", "npsn": "20539047", "level": "SD", "address": "NGRAYUN, SELUR", "pagu": 28}, {"originalNo": 438, "name": "SD NEGERI 5 SLAHUNG", "npsn": "20510185", "level": "SD", "address": "SLAHUNG, SLAHUNG", "pagu": 28}, {"originalNo": 439, "name": "SD NEGERI 5 WAGIRKIDUL", "npsn": "20510184", "level": "SD", "address": "PULUNG, WAGIR KIDUL", "pagu": 28}, {"originalNo": 440, "name": "SD NEGERI 6 BAOSAN KIDUL", "npsn": "20510170", "level": "SD", "address": "NGRAYUN, BAOSAN KIDUL", "pagu": 28}, {"originalNo": 441, "name": "SD NEGERI 6 MRAYAN", "npsn": "20510169", "level": "SD", "address": "NGRAYUN, MRAYAN", "pagu": 28}, {"originalNo": 442, "name": "SD NEGERI 6 NGRAYUN", "npsn": "20510168", "level": "SD", "address": "NGRAYUN, NGRAYUN", "pagu": 28}, {"originalNo": 443, "name": "SD NEGERI 6 SAWOO", "npsn": "20510167", "level": "SD", "address": "SAWOO, SAWOO", "pagu": 28}, {"originalNo": 444, "name": "SD NEGERI 7 BAOSAN KIDUL", "npsn": "20510166", "level": "SD", "address": "NGRAYUN, GEDANGAN", "pagu": 28}, {"originalNo": 445, "name": "SD NEGERI 7 NGRAYUN", "npsn": "20510165", "level": "SD", "address": "NGRAYUN, NGRAYUN", "pagu": 28}, {"originalNo": 446, "name": "SD NEGERI 7 SAWOO", "npsn": "20510164", "level": "SD", "address": "SAWOO, SAWOO", "pagu": 28}, {"originalNo": 447, "name": "SD NEGERI 7 SLAHUNG", "npsn": "20510163", "level": "SD", "address": "SLAHUNG, SLAHUNG", "pagu": 28}, {"originalNo": 448, "name": "SD NEGERI 8 BAOSAN KIDUL", "npsn": "20510162", "level": "SD", "address": "NGRAYUN, BAOSAN KIDUL", "pagu": 28}, {"originalNo": 449, "name": "SD NEGERI BAJANG", "npsn": "20510161", "level": "SD", "address": "BALONG, BAJANG", "pagu": 28}, {"originalNo": 450, "name": "SD NEGERI BANARAN", "npsn": "20510160", "level": "SD", "address": "PULUNG, BANARAN", "pagu": 28}, {"originalNo": 451, "name": "SD NEGERI BANDARALIM", "npsn": "20510171", "level": "SD", "address": "BADEGAN, BANDARALIM", "pagu": 28}, {"originalNo": 452, "name": "SD NEGERI BARENG", "npsn": "20510172", "level": "SD", "address": "BABADAN, BARENG", "pagu": 28}, {"originalNo": 453, "name": "SD NEGERI BEDIWETAN", "npsn": "20510183", "level": "SD", "address": "BUNGKAL, BEDIWETAN", "pagu": 28}, {"originalNo": 454, "name": "SD NEGERI BEKARE", "npsn": "20510182", "level": "SD", "address": "BUNGKAL, BEKARE", "pagu": 28}, {"originalNo": 455, "name": "SD NEGERI BELANG", "npsn": "20510181", "level": "SD", "address": "BUNGKAL, BELANG", "pagu": 28}, {"originalNo": 456, "name": "SD NEGERI BESUKI", "npsn": "20510180", "level": "SD", "address": "SAMBIT, BESUKI", "pagu": 28}, {"originalNo": 457, "name": "SD NEGERI BETON", "npsn": "20510179", "level": "SD", "address": "SIMAN, BETON", "pagu": 28}, {"originalNo": 458, "name": "SD NEGERI BITING", "npsn": "20510178", "level": "SD", "address": "BADEGAN, BITING", "pagu": 28}, {"originalNo": 459, "name": "SD NEGERI BRAHU", "npsn": "20510177", "level": "SD", "address": "SIMAN, BRAHU", "pagu": 28}, {"originalNo": 460, "name": "SD NEGERI BRINGINAN", "npsn": "20510176", "level": "SD", "address": "JAMBON, BRINGINAN", "pagu": 28}, {"originalNo": 461, "name": "SD NEGERI BROTO", "npsn": "20510175", "level": "SD", "address": "SLAHUNG, BROTO", "pagu": 28}, {"originalNo": 462, "name": "SD NEGERI BULAK", "npsn": "20510174", "level": "SD", "address": "BALONG, BULAK", "pagu": 28}, {"originalNo": 463, "name": "SD NEGERI BULU", "npsn": "20510173", "level": "SD", "address": "SAMBIT, BULU", "pagu": 28}, {"originalNo": 464, "name": "SD NEGERI BULUKIDUL", "npsn": "20510340", "level": "SD", "address": "BALONG, BULU KIDUL", "pagu": 28}, {"originalNo": 465, "name": "SD NEGERI BUNGKAL", "npsn": "20510159", "level": "SD", "address": "BUNGKAL, BUNGKAL", "pagu": 28}, {"originalNo": 466, "name": "SD NEGERI BUNGU", "npsn": "20510266", "level": "SD", "address": "BUNGKAL, BUNGU", "pagu": 28}, {"originalNo": 467, "name": "SD NEGERI CAMPUREJO", "npsn": "20510252", "level": "SD", "address": "SAMBIT, CAMPUREJO", "pagu": 28}, {"originalNo": 468, "name": "SD NEGERI CAMPURSARI", "npsn": "20510251", "level": "SD", "address": "SAMBIT, CAMPURSARI", "pagu": 28}, {"originalNo": 469, "name": "SD NEGERI CEKOK", "npsn": "20510250", "level": "SD", "address": "BABADAN, CEKOK", "pagu": 28}, {"originalNo": 470, "name": "SD NEGERI CILUK", "npsn": "20510249", "level": "SD", "address": "KAUMAN, CILUK", "pagu": 28}, {"originalNo": 471, "name": "SD NEGERI CRABAK", "npsn": "20510248", "level": "SD", "address": "SLAHUNG, CRABAK", "pagu": 28}, {"originalNo": 472, "name": "SD NEGERI DADAPAN", "npsn": "20510247", "level": "SD", "address": "BALONG, DADAPAN", "pagu": 28}, {"originalNo": 473, "name": "SD NEGERI GALAK", "npsn": "20510627", "level": "SD", "address": "SLAHUNG, GALAK", "pagu": 28}, {"originalNo": 474, "name": "SD NEGERI GANDU", "npsn": "20510246", "level": "SD", "address": "MLARAK, GANDU", "pagu": 28}, {"originalNo": 475, "name": "SD NEGERI GOLAN", "npsn": "20510245", "level": "SD", "address": "SUKOREJO, GOLAN", "pagu": 28}, {"originalNo": 476, "name": "SD NEGERI GOMBANG", "npsn": "20510244", "level": "SD", "address": "SLAHUNG, GOMBANG", "pagu": 28}, {"originalNo": 477, "name": "SD NEGERI GONDOWIDO", "npsn": "20510243", "level": "SD", "address": "NGEBEL, GONDOWIDO", "pagu": 28}, {"originalNo": 478, "name": "SD NEGERI GONTOR", "npsn": "20510242", "level": "SD", "address": "MLARAK, GONTOR", "pagu": 28}, {"originalNo": 479, "name": "SD NEGERI GUNDIK", "npsn": "20510253", "level": "SD", "address": "SLAHUNG, GUNDIK", "pagu": 28}, {"originalNo": 480, "name": "SD NEGERI GUPOLO", "npsn": "20510254", "level": "SD", "address": "BABADAN, GUPOLO", "pagu": 28}, {"originalNo": 481, "name": "SD NEGERI JALEN", "npsn": "20510260", "level": "SD", "address": "BALONG, JALEN", "pagu": 28}, {"originalNo": 482, "name": "SD NEGERI JAMBON", "npsn": "20510259", "level": "SD", "address": "JAMBON, JAMBON", "pagu": 28}, {"originalNo": 483, "name": "SD NEGERI JANTI", "npsn": "20510258", "level": "SD", "address": "SLAHUNG, JANTI", "pagu": 28}, {"originalNo": 484, "name": "SD NEGERI JEBENG", "npsn": "20510257", "level": "SD", "address": "SLAHUNG, JEBENG", "pagu": 28}, {"originalNo": 485, "name": "SD NEGERI JETIS", "npsn": "20510256", "level": "SD", "address": "JETIS, JETIS", "pagu": 28}, {"originalNo": 486, "name": "SD NEGERI JORESAN", "npsn": "20510255", "level": "SD", "address": "MLARAK, JORESAN", "pagu": 28}, {"originalNo": 487, "name": "SD NEGERI KALIMALANG", "npsn": "20510241", "level": "SD", "address": "SUKOREJO, KARANGLO LOR", "pagu": 28}, {"originalNo": 488, "name": "SD NEGERI KAMBENG", "npsn": "20510240", "level": "SD", "address": "SLAHUNG, KAMBENG", "pagu": 28}, {"originalNo": 489, "name": "SD NEGERI KAPURAN", "npsn": "20510239", "level": "SD", "address": "BADEGAN, KAPURAN", "pagu": 28}, {"originalNo": 490, "name": "SD NEGERI KARANGMOJO", "npsn": "20510224", "level": "SD", "address": "BALONG, KARANGMOJO", "pagu": 28}, {"originalNo": 491, "name": "SD NEGERI KEMUNING", "npsn": "20510223", "level": "SD", "address": "SAMBIT, KEMUNING", "pagu": 28}, {"originalNo": 492, "name": "SD NEGERI KEPATIHAN", "npsn": "20510221", "level": "SD", "address": "PONOROGO, KEPATIHAN", "pagu": 28}, {"originalNo": 493, "name": "SD NEGERI KEPUH RUBUH", "npsn": "20510220", "level": "SD", "address": "SIMAN, KEPUHRUBUH", "pagu": 28}, {"originalNo": 494, "name": "SD NEGERI KETONGGO", "npsn": "20510219", "level": "SD", "address": "BUNGKAL, KETONGGO", "pagu": 28}, {"originalNo": 495, "name": "SD NEGERI KETRO", "npsn": "20510218", "level": "SD", "address": "SAWOO, KETRO", "pagu": 28}, {"originalNo": 496, "name": "SD NEGERI KORIPAN", "npsn": "20510217", "level": "SD", "address": "BUNGKAL, KORIPAN", "pagu": 28}, {"originalNo": 497, "name": "SD NEGERI KRADENAN", "npsn": "20510216", "level": "SD", "address": "JETIS, KRADENAN", "pagu": 28}, {"originalNo": 498, "name": "SD NEGERI KRANGGAN", "npsn": "20510215", "level": "SD", "address": "SUKOREJO, KRANGGAN", "pagu": 28}, {"originalNo": 499, "name": "SD NEGERI KUNTI", "npsn": "20506891", "level": "SD", "address": "BUNGKAL, KUNTI", "pagu": 28}, {"originalNo": 500, "name": "SD NEGERI KUTUKULON", "npsn": "20539041", "level": "SD", "address": "JETIS, KUTU KULON", "pagu": 28}, {"originalNo": 501, "name": "SD NEGERI KUTUWETAN", "npsn": "20510213", "level": "SD", "address": "JETIS, KUTU WETAN", "pagu": 28}, {"originalNo": 502, "name": "SD NEGERI KWAJON", "npsn": "20510225", "level": "SD", "address": "BUNGKAL, KWAJON", "pagu": 28}, {"originalNo": 503, "name": "SD NEGERI LENGKONG", "npsn": "20510226", "level": "SD", "address": "SUKOREJO, LENGKONG", "pagu": 28}, {"originalNo": 504, "name": "SD NEGERI MANUK", "npsn": "20510237", "level": "SD", "address": "SIMAN, MANUK", "pagu": 28}, {"originalNo": 505, "name": "SD NEGERI MENANG", "npsn": "20510235", "level": "SD", "address": "JAMBON, MENANG", "pagu": 28}, {"originalNo": 506, "name": "SD NEGERI MENGGARE", "npsn": "20510233", "level": "SD", "address": "SLAHUNG, MENGGARE", "pagu": 28}, {"originalNo": 507, "name": "SD NEGERI MLARAK", "npsn": "20510232", "level": "SD", "address": "MLARAK, MLARAK", "pagu": 28}, {"originalNo": 508, "name": "SD NEGERI MOJOMATI", "npsn": "20510231", "level": "SD", "address": "JETIS, MOJOMATI", "pagu": 28}, {"originalNo": 509, "name": "SD NEGERI MOJOPITU", "npsn": "20510230", "level": "SD", "address": "SLAHUNG, MOJOPITU", "pagu": 28}, {"originalNo": 510, "name": "SD NEGERI MOJOREJO", "npsn": "20510229", "level": "SD", "address": "JETIS, JETIS", "pagu": 28}, {"originalNo": 511, "name": "SD NEGERI MOROSARI", "npsn": "20510228", "level": "SD", "address": "SUKOREJO, MOROSARI", "pagu": 28}, {"originalNo": 512, "name": "SD NEGERI NAILAN", "npsn": "20510227", "level": "SD", "address": "SLAHUNG, NAILAN", "pagu": 28}, {"originalNo": 513, "name": "SD NEGERI NAMBAK", "npsn": "20510212", "level": "SD", "address": "BUNGKAL, NAMBAK", "pagu": 28}, {"originalNo": 514, "name": "SD NEGERI NAMPAN", "npsn": "20510158", "level": "SD", "address": "SUKOREJO, NAMPAN", "pagu": 28}, {"originalNo": 515, "name": "SD NEGERI NGABAR", "npsn": "20510093", "level": "SD", "address": "SIMAN, NGABAR", "pagu": 28}, {"originalNo": 516, "name": "SD NEGERI NGAMPEL", "npsn": "20510685", "level": "SD", "address": "BALONG, NGAMPEL", "pagu": 28}, {"originalNo": 517, "name": "SD NEGERI NGLEWAN", "npsn": "20510078", "level": "SD", "address": "SAMBIT, NGLEWAN", "pagu": 28}, {"originalNo": 518, "name": "SD NEGERI NGLONING", "npsn": "20510077", "level": "SD", "address": "SLAHUNG, NGLONING", "pagu": 28}, {"originalNo": 519, "name": "SD NEGERI NGRAKET", "npsn": "20510076", "level": "SD", "address": "BALONG, NGRAKET", "pagu": 28}, {"originalNo": 520, "name": "SD NEGERI NGRUKEM", "npsn": "20510075", "level": "SD", "address": "MLARAK, NGRUKEM", "pagu": 28}, {"originalNo": 521, "name": "SD NEGERI NGUNUT", "npsn": "20510074", "level": "SD", "address": "BABADAN, NGUNUT", "pagu": 28}, {"originalNo": 522, "name": "SD NEGERI NONGKODONO", "npsn": "20510073", "level": "SD", "address": "KAUMAN, NONGKODONO", "pagu": 28}, {"originalNo": 523, "name": "SD NEGERI PADAS", "npsn": "20510072", "level": "SD", "address": "BUNGKAL, PADAS", "pagu": 28}, {"originalNo": 524, "name": "SD NEGERI PAGER", "npsn": "20510071", "level": "SD", "address": "BUNGKAL, PAGER", "pagu": 28}, {"originalNo": 525, "name": "SD NEGERI PANJENG", "npsn": "20510070", "level": "SD", "address": "JENANGAN, PANJENG", "pagu": 28}, {"originalNo": 526, "name": "SD NEGERI PATIHAN WETAN", "npsn": "20510069", "level": "SD", "address": "BABADAN, PATIHAN WETAN", "pagu": 28}, {"originalNo": 527, "name": "SD NEGERI PATIK", "npsn": "20510081", "level": "SD", "address": "PULUNG, PATIK", "pagu": 28}, {"originalNo": 528, "name": "SD NEGERI PINTU", "npsn": "20510092", "level": "SD", "address": "JENANGAN, PINTU", "pagu": 28}, {"originalNo": 529, "name": "SD NEGERI PLANCUNGAN", "npsn": "20510091", "level": "SD", "address": "SLAHUNG, PLANCUNGAN", "pagu": 28}, {"originalNo": 530, "name": "SD NEGERI PUDAK KULON", "npsn": "20510090", "level": "SD", "address": "PUDAK, PUDAK KULON", "pagu": 28}, {"originalNo": 531, "name": "SD NEGERI PUDAK WETAN", "npsn": "20510089", "level": "SD", "address": "PUDAK, PUDAK WETAN", "pagu": 56}, {"originalNo": 532, "name": "SD NEGERI PULOSARI", "npsn": "20510088", "level": "SD", "address": "JAMBON, PULOSARI", "pagu": 28}, {"originalNo": 533, "name": "SD NEGERI PULUNGMERDIKO", "npsn": "20510087", "level": "SD", "address": "PULUNG, PULUNG MERDIKO", "pagu": 28}, {"originalNo": 534, "name": "SD NEGERI PURWOREJO", "npsn": "20510086", "level": "SD", "address": "BALONG, PURWOREJO", "pagu": 28}, {"originalNo": 535, "name": "SD NEGERI RONOSENTANAN", "npsn": "20510085", "level": "SD", "address": "SIMAN, RONOSENTANAN", "pagu": 28}, {"originalNo": 536, "name": "SD NEGERI SAHANG", "npsn": "20510084", "level": "SD", "address": "NGEBEL, SAHANG", "pagu": 28}, {"originalNo": 537, "name": "SD NEGERI SAWUH", "npsn": "20510083", "level": "SD", "address": "SIMAN, SAWUH", "pagu": 28}, {"originalNo": 538, "name": "SD NEGERI SEDAH", "npsn": "20510082", "level": "SD", "address": "JENANGAN, SEDAH", "pagu": 28}, {"originalNo": 539, "name": "SD NEGERI SEMPU", "npsn": "20510068", "level": "SD", "address": "NGEBEL, NGEBEL", "pagu": 28}, {"originalNo": 540, "name": "SD NEGERI SERAG", "npsn": "20510067", "level": "SD", "address": "PULUNG, SERAG", "pagu": 28}, {"originalNo": 541, "name": "SD NEGERI SERANGAN", "npsn": "20510066", "level": "SD", "address": "MLARAK, SERANGAN", "pagu": 28}, {"originalNo": 542, "name": "SD NEGERI SETONO", "npsn": "20510052", "level": "SD", "address": "JENANGAN, JENANGAN", "pagu": 28}, {"originalNo": 543, "name": "SD NEGERI SINGKIL", "npsn": "20510051", "level": "SD", "address": "BALONG, SINGKIL", "pagu": 28}, {"originalNo": 544, "name": "SD NEGERI SRAGI", "npsn": "20510050", "level": "SD", "address": "SUKOREJO, SRAGI", "pagu": 28}, {"originalNo": 545, "name": "SD NEGERI SRANDIL", "npsn": "20510049", "level": "SD", "address": "JAMBON, SRANDIL", "pagu": 28}, {"originalNo": 546, "name": "SD NEGERI SRATEN", "npsn": "20510048", "level": "SD", "address": "JENANGAN, SRATEN", "pagu": 28}, {"originalNo": 547, "name": "SD NEGERI SUKOSARI KAUMAN", "npsn": "20510047", "level": "SD", "address": "KAUMAN, SUKOSARI", "pagu": 28}, {"originalNo": 548, "name": "SD NEGERI SUMBEREJO", "npsn": "20510046", "level": "SD", "address": "BALONG, NGUMPUL", "pagu": 28}, {"originalNo": 549, "name": "SD NEGERI TAMBAKBAYAN", "npsn": "20510045", "level": "SD", "address": "PONOROGO, TAMBAKBAYAN", "pagu": 28}, {"originalNo": 550, "name": "SD NEGERI TAMBANG", "npsn": "20510044", "level": "SD", "address": "PUDAK, TAMBANG", "pagu": 28}, {"originalNo": 551, "name": "SD NEGERI TATUNG", "npsn": "20510530", "level": "SD", "address": "BALONG, TATUNG", "pagu": 28}, {"originalNo": 552, "name": "SD NEGERI TEGALSARI", "npsn": "20510043", "level": "SD", "address": "JETIS, TEGALSARI", "pagu": 28}, {"originalNo": 553, "name": "SD NEGERI TOSANAN", "npsn": "20510042", "level": "SD", "address": "KAUMAN, TOSANAN", "pagu": 28}, {"originalNo": 554, "name": "SD NEGERI TRUNENG", "npsn": "20510053", "level": "SD", "address": "SLAHUNG, TRUNENG", "pagu": 28}, {"originalNo": 555, "name": "SD NEGERI TUGUREJO", "npsn": "20510054", "level": "SD", "address": "SAWOO, TUGUREJO", "pagu": 28}, {"originalNo": 556, "name": "SD NEGERI TURI", "npsn": "20510065", "level": "SD", "address": "JETIS, TURI", "pagu": 28}, {"originalNo": 557, "name": "SD NEGERI WAYANG", "npsn": "20510064", "level": "SD", "address": "PULUNG, WAYANG", "pagu": 28}, {"originalNo": 558, "name": "SD NEGERI WILANGAN", "npsn": "20510063", "level": "SD", "address": "SAMBIT, WILANGAN", "pagu": 28}, {"originalNo": 559, "name": "SD SANTA MARIA", "npsn": "20510369", "level": "SD", "address": "PONOROGO, MANGKUJAYAN", "pagu": 0}, {"originalNo": 560, "name": "SDN 3 Paringan", "npsn": "20509893", "level": "SD", "address": "JENANGAN, PARINGAN", "pagu": 0}];
+
+    const state = {
+      search: '',
+      sort: 'pagu_desc',
+      minPagu: '',
+      maxPagu: '',
+      district: '',
+      village: '',
+      exactPagu: ''
+    };
+
+    const els = {
+      searchInput: document.getElementById('searchInput'),
+      sortSelect: document.getElementById('sortSelect'),
+      minPagu: document.getElementById('minPagu'),
+      maxPagu: document.getElementById('maxPagu'),
+      districtFilter: document.getElementById('districtFilter'),
+      villageFilter: document.getElementById('villageFilter'),
+      resetBtn: document.getElementById('resetBtn'),
+      tableBody: document.getElementById('tableBody'),
+      emptyState: document.getElementById('emptyState'),
+      resultTitle: document.getElementById('resultTitle'),
+      resultMeta: document.getElementById('resultMeta'),
+      cardVisible: document.getElementById('cardVisible'),
+      activeFilterBadge: document.getElementById('activeFilterBadge'),
+      chips: document.getElementById('chips')
+    };
+
+    const collator = new Intl.Collator('id', { sensitivity: 'base', numeric: true });
+
+    function formatNumber(n) {
+      return new Intl.NumberFormat('id-ID').format(n);
+    }
+
+    function parseAddress(address) {
+      const parts = String(address || '').split(',').map(part => part.trim()).filter(Boolean);
+      return {
+        district: parts[0] || '',
+        village: parts[1] || ''
+      };
+    }
+
+    function getFilteredSchoolsForVillageOptions() {
+      return state.district
+        ? schools.filter(item => parseAddress(item.address).district === state.district)
+        : schools;
+    }
+
+    function buildAddressOptions() {
+      const districts = [...new Set(schools.map(item => parseAddress(item.address).district).filter(Boolean))]
+        .sort((a, b) => collator.compare(a, b));
+
+      els.districtFilter.innerHTML = '<option value="">Semua kecamatan</option>' +
+        districts.map(district => `<option value="${escapeHtml(district)}">${escapeHtml(district)}</option>`).join('');
+
+      updateVillageOptions();
+    }
+
+    function updateVillageOptions() {
+      const villages = [...new Set(getFilteredSchoolsForVillageOptions().map(item => parseAddress(item.address).village).filter(Boolean))]
+        .sort((a, b) => collator.compare(a, b));
+
+      const currentVillage = villages.includes(state.village) ? state.village : '';
+      if (currentVillage !== state.village) {
+        state.village = '';
+      }
+
+      els.villageFilter.innerHTML = '<option value="">Semua desa / kelurahan</option>' +
+        villages.map(village => `<option value="${escapeHtml(village)}">${escapeHtml(village)}</option>`).join('');
+      els.villageFilter.value = currentVillage;
+    }
+
+    function setBadge() {
+      const bits = [];
+      if (state.exactPagu !== '') bits.push(`Pagu = ${state.exactPagu}`);
+      if (state.minPagu !== '') bits.push(`Min ${state.minPagu}`);
+      if (state.maxPagu !== '') bits.push(`Maks ${state.maxPagu}`);
+      if (state.district !== '') bits.push(`Kec. ${state.district}`);
+      if (state.village !== '') bits.push(`Desa ${state.village}`);
+      els.activeFilterBadge.textContent = bits.length ? bits.join(' • ') : 'Semua pagu';
+    }
+
+    function applyFilters() {
+      const query = state.search.trim().toLowerCase();
+      const min = state.minPagu === '' ? null : Number(state.minPagu);
+      const max = state.maxPagu === '' ? null : Number(state.maxPagu);
+      const exact = state.exactPagu === '' ? null : Number(state.exactPagu);
+
+      let result = schools.filter(item => {
+        const parsed = parseAddress(item.address);
+        const haystack = `${item.originalNo} ${item.name} ${item.npsn} ${item.level} ${item.address} ${parsed.district} ${parsed.village} ${item.pagu}`.toLowerCase();
+        const matchQuery = !query || haystack.includes(query);
+        const matchMin = min === null || item.pagu >= min;
+        const matchMax = max === null || item.pagu <= max;
+        const matchExact = exact === null || item.pagu === exact;
+        const matchDistrict = !state.district || parsed.district === state.district;
+        const matchVillage = !state.village || parsed.village === state.village;
+        return matchQuery && matchMin && matchMax && matchExact && matchDistrict && matchVillage;
+      });
+
+      switch (state.sort) {
+        case 'pagu_asc':
+          result.sort((a, b) => a.pagu - b.pagu || collator.compare(a.name, b.name));
+          break;
+        case 'pagu_desc':
+          result.sort((a, b) => b.pagu - a.pagu || collator.compare(a.name, b.name));
+          break;
+        case 'name_asc':
+          result.sort((a, b) => collator.compare(a.name, b.name) || a.pagu - b.pagu);
+          break;
+        case 'name_desc':
+          result.sort((a, b) => collator.compare(b.name, a.name) || b.pagu - a.pagu);
+          break;
+        default:
+          result.sort((a, b) => a.originalNo - b.originalNo);
+      }
+
+      render(result);
+    }
+
+    function render(rows) {
+      els.tableBody.innerHTML = '';
+      els.cardVisible.textContent = formatNumber(rows.length);
+      els.resultTitle.textContent = rows.length ? 'Hasil daftar sekolah' : 'Tidak ada hasil';
+      els.resultMeta.textContent = rows.length
+        ? `Menampilkan ${formatNumber(rows.length)} dari ${formatNumber(schools.length)} sekolah`
+        : `Tidak ada sekolah yang cocok dengan kata kunci atau filter saat ini.`;
+
+      els.emptyState.hidden = rows.length !== 0;
+
+      const frag = document.createDocumentFragment();
+      rows.forEach((item, index) => {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td class="no">${index + 1}</td>
+          <td>
+            <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name)}</div>
+          </td>
+          <td class="npsn">${escapeHtml(item.npsn)}</td>
+          <td>${escapeHtml(item.level)}</td>
+          <td>${escapeHtml(item.address)}</td>
+          <td class="pagu">${formatNumber(item.pagu)}</td>
+        `;
+        frag.appendChild(tr);
+      });
+      els.tableBody.appendChild(frag);
+      setBadge();
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function setExactPagu(value) {
+      state.exactPagu = value === null ? '' : String(value);
+      updateChipState();
+      applyFilters();
+    }
+
+    function updateChipState() {
+      document.querySelectorAll('.chip').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === state.exactPagu);
+      });
+    }
+
+    function buildChips() {
+      const values = [...new Set(schools.map(s => s.pagu))].sort((a, b) => b - a);
+      const html = [
+        `<button class="chip active" type="button" data-value="">Semua</button>`,
+        ...values.map(v => `<button class="chip" type="button" data-value="${v}">Pagu ${v} (${schools.filter(s => s.pagu === v).length})</button>`)
+      ].join('');
+      els.chips.innerHTML = html;
+      els.chips.querySelectorAll('.chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.exactPagu = btn.dataset.value;
+          updateChipState();
+          applyFilters();
+        });
+      });
+    }
+
+    els.searchInput.addEventListener('input', (e) => {
+      state.search = e.target.value;
+      applyFilters();
+    });
+    els.sortSelect.addEventListener('change', (e) => {
+      state.sort = e.target.value;
+      applyFilters();
+    });
+    els.minPagu.addEventListener('input', (e) => {
+      state.minPagu = e.target.value;
+      applyFilters();
+    });
+    els.maxPagu.addEventListener('input', (e) => {
+      state.maxPagu = e.target.value;
+      applyFilters();
+    });
+    els.districtFilter.addEventListener('change', (e) => {
+      state.district = e.target.value;
+      state.village = '';
+      updateVillageOptions();
+      applyFilters();
+    });
+    els.villageFilter.addEventListener('change', (e) => {
+      state.village = e.target.value;
+      applyFilters();
+    });
+    els.resetBtn.addEventListener('click', () => {
+      state.search = '';
+      state.sort = 'pagu_desc';
+      state.minPagu = '';
+      state.maxPagu = '';
+      state.district = '';
+      state.village = '';
+      state.exactPagu = '';
+      els.searchInput.value = '';
+      els.sortSelect.value = state.sort;
+      els.minPagu.value = '';
+      els.maxPagu.value = '';
+      els.districtFilter.value = '';
+      updateVillageOptions();
+      els.villageFilter.value = '';
+      updateChipState();
+      applyFilters();
+    });
+
+    buildChips();
+    buildAddressOptions();
+    applyFilters();
+  </script>
+</body>
+</html>
